@@ -1,0 +1,78 @@
+# System Patterns: ChoresTree Discord Bot
+
+---
+
+## Architectuur Patronen
+
+### Core Architectuur Principes
+1. Atomic Design
+   - Kleine, onafhankelijke componenten
+   - Enkele verantwoordelijkheid per component
+   - Duidelijke interfaces
+
+2. Composable Architecture
+   - Flexibele component combinaties
+   - Loose coupling
+   - High cohesion
+
+3. Event-Driven Architecture
+   - Asynchrone communicatie
+   - Event publishing/subscribing
+   - Message queuing
+
+## Component Structuur
+
+### Core Components
+1. Discord Interface Layer
+   - Command Handler
+   - Event Listener
+   - Message Formatter
+
+2. Task Management Core
+   - Task Repository
+   - Assignment Manager
+   - Status Controller
+
+3. Notification Engine
+   - Reminder Scheduler
+   - Notification Dispatcher
+   - Template Manager
+
+4. Configuration System
+   - Settings Repository
+   - Permission Manager
+   - Server Config Handler
+
+## Implementatie Patronen
+
+### Code Standaarden
+- TypeScript voor type-safety
+- Async/await voor asynchrone operaties
+- Interface-first design
+- Dependency injection
+
+### Testing Patterns
+- Unit tests per component
+- Integration tests voor workflows
+- Mock interfaces voor externe services
+- End-to-end test scenarios
+
+### Error Handling
+- Error types per domein
+- Graceful degradation
+- Gestructureerde logging
+- Recovery strategieën
+
+## Integratie Patterns
+
+### Inter-Component Communicatie
+- Event bus voor loose coupling
+- Command pattern voor acties
+- Observer pattern voor updates
+- Repository pattern voor data access
+
+### Externe Integraties
+- Adapter pattern voor Discord API
+- Gateway pattern voor database
+- Factory pattern voor notificaties
+- Strategy pattern voor configuratie
