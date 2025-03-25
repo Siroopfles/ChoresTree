@@ -18,7 +18,6 @@ export class CommandRegistry {
 
   private constructor() {
     this.commands = new Collection();
-    
     // Emit event when registry is initialized
     eventBus.emit('commandRegistry.initialized', null);
   }

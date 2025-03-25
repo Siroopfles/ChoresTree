@@ -13,8 +13,8 @@ export class PingCommand implements Command {
   public meta: CommandMeta = meta;
 
   public async execute(interaction: ChatInputCommandInteraction): Promise<void> {
-    const sent = await interaction.reply({ 
-      content: 'Pinging...', 
+    const sent = await interaction.reply({
+      content: 'Pinging...',
       fetchReply: true,
     });
 

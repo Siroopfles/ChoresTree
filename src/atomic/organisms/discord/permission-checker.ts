@@ -37,10 +37,7 @@ export class PermissionChecker {
     });
   }
 
-  private hasPermission(
-    member: any,
-    permission: PermissionResolvable,
-  ): boolean {
+  private hasPermission(member: any, permission: PermissionResolvable): boolean {
     // Handle array of permissions
     if (Array.isArray(permission)) {
       return permission.every((p) => this.hasPermission(member, p));

@@ -45,13 +45,9 @@ export class EventListener {
         await permissionChecker.checkPermissions(interaction, command);
 
         // Check rate limit
-        await this.rateLimiter.checkRateLimit(
-          user.id,
-          commandName,
-          {
-            windowMs: command.meta.cooldown ? command.meta.cooldown * 1000 : undefined,
-          },
-        );
+        await this.rateLimiter.checkRateLimit(user.id, commandName, {
+          windowMs: command.meta.cooldown ? command.meta.cooldown * 1000 : undefined,
+        });
 
         // Execute command
         await command.execute(interaction);
@@ -94,9 +90,6 @@ export class EventListener {
 }
 
 // Factory function
-export function createEventListener(
-  client: Client,
-  config: EventListenerConfig,
-): EventListener {
+export function createEventListener(client: Client, config: EventListenerConfig): EventListener {
   return new EventListener(client, config);
 }

@@ -1,30 +1,11 @@
 import { Task } from '@/atomic/atoms/database/entities/Task';
-import { IBaseEntity } from '@/atomic/atoms/database/interfaces/BaseEntity';
-
-interface StatusHistoryEntry extends IBaseEntity {
-  taskId: string;
-  serverId: string;
-  fromStatus: TaskStatus;
-  toStatus: TaskStatus;
-  updatedById: string;
-  updatedAt: Date;
-}
 import { TaskStatus } from '@/atomic/atoms/database/interfaces/Task';
 import { TaskRepository } from '@/atomic/molecules/database/repositories/TaskRepository';
 import { EventBus } from '@/core/eventBus';
-
-export class StatusTrackingError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'StatusTrackingError';
-  }
-}
-
-interface StatusUpdateResult {
-  success: boolean;
-  task?: Task;
-  error?: string;
-}
+import { StatusTrackingError } from '@/atomic/atoms/task/errors';
+import { StatusHistoryEntry } from '@/atomic/atoms/task/types/history';
+import { isValidStatusTransition } from '@/atomic/atoms/task/status';
+import { StatusUpdateResult } from '@/atomic/atoms/task/types';
 
 export class StatusTrackingService {
   private static instance: StatusTrackingService;
@@ -66,7 +47,7 @@ export class StatusTrackingService {
       const previousStatus = task.status;
       
       // Valideer status transitie
-      if (!this.isValidStatusTransition(previousStatus, newStatus)) {
+      if (!isValidStatusTransition(previousStatus, newStatus)) {
         return {
           success: false,
           error: `Invalid status transition from ${previousStatus} to ${newStatus}`,
@@ -126,34 +107,6 @@ export class StatusTrackingService {
         `Failed to check overdue tasks: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
-  }
-
-  private isValidStatusTransition(
-    fromStatus: TaskStatus,
-    toStatus: TaskStatus
-  ): boolean {
-    // Status transitie regels
-    const validTransitions: Record<TaskStatus, TaskStatus[]> = {
-      [TaskStatus.PENDING]: [
-        TaskStatus.IN_PROGRESS,
-        TaskStatus.CANCELLED,
-        TaskStatus.OVERDUE,
-      ],
-      [TaskStatus.IN_PROGRESS]: [
-        TaskStatus.COMPLETED,
-        TaskStatus.PENDING,
-        TaskStatus.CANCELLED,
-      ],
-      [TaskStatus.COMPLETED]: [TaskStatus.PENDING], // Heropenen toegestaan
-      [TaskStatus.OVERDUE]: [
-        TaskStatus.IN_PROGRESS,
-        TaskStatus.COMPLETED,
-        TaskStatus.CANCELLED,
-      ],
-      [TaskStatus.CANCELLED]: [TaskStatus.PENDING], // Heropenen toegestaan
-    };
-
-    return validTransitions[fromStatus]?.includes(toStatus) ?? false;
   }
 
   /** @todo Implementeer status historie tracking in een aparte tabel */

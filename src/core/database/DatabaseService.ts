@@ -1,16 +1,19 @@
 import { AppDataSource, initializeDatabase } from '@/config/database';
 import { TaskRepository } from '@/atomic/molecules/database/repositories/TaskRepository';
 import { ServerSettingsRepository } from '@/atomic/molecules/database/repositories/ServerSettingsRepository';
+import { ConfigRepository } from '@/atomic/molecules/database/repositories/ConfigRepository';
 
 export class DatabaseService {
   private static instance: DatabaseService;
   private taskRepository: TaskRepository;
   private serverSettingsRepository: ServerSettingsRepository;
+  private configRepository: ConfigRepository;
   private isInitialized = false;
 
   private constructor() {
     this.taskRepository = new TaskRepository();
     this.serverSettingsRepository = new ServerSettingsRepository();
+    this.configRepository = new ConfigRepository();
   }
 
   public static getInstance(): DatabaseService {
@@ -47,6 +50,11 @@ export class DatabaseService {
   public getServerSettingsRepository(): ServerSettingsRepository {
     this.ensureInitialized();
     return this.serverSettingsRepository;
+  }
+
+  public getConfigRepository(): ConfigRepository {
+    this.ensureInitialized();
+    return this.configRepository;
   }
 
   public async cleanup(): Promise<void> {

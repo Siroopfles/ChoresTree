@@ -7,9 +7,15 @@ export interface CommandMeta {
   cooldown?: number; // in seconds
 }
 
+export interface ValidationResult {
+  isValid: boolean;
+  error?: string;
+}
+
 export interface Command {
   meta: CommandMeta;
   execute(interaction: ChatInputCommandInteraction): Promise<void>;
+  validate?(interaction: ChatInputCommandInteraction): Promise<ValidationResult>;
 }
 
 // Error types voor command handling

@@ -1,7 +1,7 @@
 import { TaskManagementService } from './TaskManagementService';
 import { AssignmentService } from './AssignmentService';
 import { StatusTrackingService } from './StatusTrackingService';
-import { TaskValidationService } from './TaskValidationService';
+import { TaskValidationService } from '@/atomic/atoms/task/validation';
 import { TaskRepository } from '@/atomic/molecules/database/repositories/TaskRepository';
 import { eventBus } from '@/core/eventBus';
 

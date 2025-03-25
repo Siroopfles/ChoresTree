@@ -40,13 +40,20 @@ export class TaskRepository extends ServerScopedRepository<Task> {
   }
 
   async findOverdueTasks(serverId: string): Promise<Task[]> {
+    const conditions = {
+      status: TaskStatus.PENDING,
+      deadline: LessThan(new Date()),
+    };
+
+    // Als serverId niet '*' is, voeg het toe aan de where clause
+    if (serverId !== '*') {
+      Object.assign(conditions, { serverId });
+    }
+
     return this.repository.find({
-      where: {
-        serverId,
-        status: TaskStatus.PENDING,
-        deadline: LessThan(new Date()),
-      },
+      where: conditions,
       order: {
+        serverId: 'ASC',
         deadline: 'ASC',
       },
     });
@@ -83,6 +90,19 @@ export class TaskRepository extends ServerScopedRepository<Task> {
         completedAt: 'ASC',
       },
     });
+  }
+
+  async getActiveServerIds(): Promise<string[]> {
+    const result = await this.repository
+      .createQueryBuilder('task')
+      .select('task.serverId')
+      .where({
+        status: In([TaskStatus.PENDING, TaskStatus.IN_PROGRESS])
+      })
+      .groupBy('task.serverId')
+      .getRawMany();
+
+    return result.map(row => row.task_serverId);
   }
 
   async findTasksByAssignee(

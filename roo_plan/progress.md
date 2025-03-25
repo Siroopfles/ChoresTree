@@ -13,36 +13,36 @@
 ## Core Features
 
 ### Discord Bot Basis
-- [PLAN] Bot setup en authenticatie
-- [PLAN] Command handler implementatie
-- [PLAN] Event listener systeem
-- [PLAN] Error handling en logging
+- [DONE] Bot setup en authenticatie
+- [WIP] Command handler implementatie
+- [DONE] Event listener systeem
+- [DONE] Error handling en logging
 
 ### Taakbeheer
-- [PLAN] Taak CRUD operaties
-- [PLAN] Toewijzingssysteem
-- [PLAN] Status management
-- [PLAN] Deadline tracking
+- [WIP] Taak CRUD operaties
+- [WIP] Toewijzingssysteem
+- [WIP] Status management
+- [WIP] Deadline tracking
 
 ### Notificaties
-- [PLAN] Reminder systeem
-- [PLAN] Discord notifications
-- [PLAN] Herinneringsschema's
-- [PLAN] Template systeem
+- [WIP] Reminder systeem
+- [WIP] Discord notifications
+- [WIP] Herinneringsschema's
+- [WIP] Template systeem
 
 ### Configuratie
-- [PLAN] Server settings
-- [PLAN] Permissie systeem
-- [PLAN] Customization opties
-- [PLAN] Database setup
+- [WIP] Server settings
+- [WIP] Permissie systeem
+- [WIP] Customization opties
+- [DONE] Database setup
 
 ## Infrastructure
 
 ### Development
-- [PLAN] Development environment setup
-- [PLAN] Testing framework
-- [PLAN] CI/CD pipeline
-- [PLAN] Documentatie
+- [DONE] Development environment setup
+- [DONE] Testing framework
+- [DONE] CI/CD pipeline
+- [DONE] Documentatie
 
 ### Deployment
 - [PLAN] Production environment

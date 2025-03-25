@@ -4,7 +4,7 @@ import { TaskRepository } from '@/atomic/molecules/database/repositories/TaskRep
 import { EventBus } from '@/core/eventBus';
 import { AssignmentService } from './AssignmentService';
 import { StatusTrackingService } from './StatusTrackingService';
-import { TaskValidationService } from './TaskValidationService';
+import { TaskValidationService } from '@/atomic/atoms/task/validation';
 
 export class TaskManagementError extends Error {
   constructor(message: string) {
