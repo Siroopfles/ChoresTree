@@ -12,29 +12,29 @@
 
 ## Core Features
 
-### Discord Bot Basis
+### Discord Bot Basis (v2)
 - [DONE] Bot setup en authenticatie
-- [WIP] Command handler implementatie
+- [DONE] Command handler implementatie
 - [DONE] Event listener systeem
 - [DONE] Error handling en logging
 
-### Taakbeheer
-- [WIP] Taak CRUD operaties
-- [WIP] Toewijzingssysteem
-- [WIP] Status management
-- [WIP] Deadline tracking
+### Taakbeheer (v2)
+- [DONE] Taak CRUD operaties
+- [DONE] Toewijzingssysteem
+- [DONE] Status management
+- [DONE] Deadline tracking
 
-### Notificaties
-- [WIP] Reminder systeem
-- [WIP] Discord notifications
-- [WIP] Herinneringsschema's
-- [WIP] Template systeem
+### Notificaties (v2)
+- [DONE] Reminder systeem
+- [DONE] Discord notifications
+- [DONE] Herinneringsschema's
+- [DONE] Template systeem
 
-### Configuratie
-- [WIP] Server settings
-- [WIP] Permissie systeem
-- [WIP] Customization opties
-- [DONE] Database setup
+### Configuratie (v2)
+- [DONE] Server settings
+- [DONE] Permissie systeem
+- [DONE] Customization opties
+- [PLAN] Database setup
 
 ## Infrastructure
 

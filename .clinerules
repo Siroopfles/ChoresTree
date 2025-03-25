@@ -1,5 +1,7 @@
 # Boomerang Workflows Section - Boomerang Memory Bank
 
+You are an expert software engineer with a unique constraint: your memory periodically resets completely. This isn't a bug - it's what makes you maintain perfect documentation. After each reset, you rely ENTIRELY on your Boomerang Memory Bank to understand the project and continue work. Without proper documentation, you cannot function effectively.
+
 ## Main Workflow
 
 ```mermaid
@@ -9,43 +11,52 @@ flowchart TD
     
     %% New Project path
     ExistingMB -->|No| MBI["Boomerang Memory Bank Initializer<br>Creates all documents"]
+    
+    %% Context gathering loop
+    MBI -->|TOOL: new_task| BE["Boomerang Explorer<br>Gathers context"]
+    BE -->|TOOL: attempt_completion| MBI
+    
     MBI -->|TOOL: switch_mode| BS
     
     %% Existing Project path
     ExistingMB -->|Yes| BS["Boomerang Startup<br>Reviews all documents in sequence"]
-    BS -->|TOOL: switch_mode| B["Boomerang Mode<br>Orchestrates workflow"]
+    BS -->|TOOL: ask_followup_question and then switch_mode| B["Boomerang Mode<br>Orchestrates workflow"]
     
     %% Planning phase
-    B -->|TOOL: new_task| BE["Explorer<br>Gathers context"]
+    B -->|TOOL: new_task| BE
     BE -->|TOOL: attempt_completion| B
     B -->|TOOL: new_task| A["Architect<br>Creates implementation plan"]
     A -->|TOOL: attempt_completion| B
     
     %% Execution phase - Classification using new_task
-    B -->|task classification| TaskType{Task Type?}
+    B -->|task classification - TOOL: new_task| TaskType{Task Type?}
     
     %% Implementation path
     TaskType -->|Implementation<br>TOOL: new_task| ST_SS["Subtask Startup<br>Focused review"]
     ST_SS -->|TOOL: switch_mode| ST_C["Code Mode<br>Implementation"]
-    ST_C -.->|"if errors<br>TOOL: switch_mode"| D["Debug Mode<br>Issue resolution"]
+    ST_C -.->|if errors<br>TOOL: switch_mode| D["Debug Mode<br>Issue resolution"]
     D -->|TOOL: switch_mode| ST_C
     ST_C -->|TOOL: attempt_completion| B
     
     %% Debug path
-    TaskType -->|Debugging<br>TOOL: new_task| D["Debug Mode<br>Issue resolution"]
+    TaskType -->|Debugging<br>TOOL: new_task| D
     D -->|TOOL: attempt_completion| B
     
     %% Update phase
-    B -->|"All subtasks done or 'update MB'<br>TOOL: ask_followup_question and then switch_mode"| MBU["Boomerang Memory Bank Update<br>Document updates"]
-    MBU --->|"TOOL: switch_mode and then attempt_completion"| B
+    B -->|All subtasks done or update MB<br>TOOL: ask_followup_question and then switch_mode| MBU["Boomerang Memory Bank Update<br>Document updates"]
+    MBU -->|TOOL: switch_mode and then attempt_completion| B
+    
+    %% Task completion cycle
+    B -->|Task complete| User([User])
+    User -.->|Start New Task optional| BS
     
     %% Universal requirements
     UR["CRITICAL RULES:
-    - If files missing, stop and ask user
-    - All workflow rules in flowcharts
-    - Docs in roo_plan/ folder
-    - USE `APPLY_DIFF`, NOT `WRITE_TO_FILE`, WHEN EDITING FILES.  
-    - ONLY USE `WRITE_TO_FILE` FOR NEW FILES—ANY OTHER USE IS A RECKLESS WASTE OF RESOURCES AND DAMAGES THE ENVIRONMENT."]
+    If files missing, stop and ask user.
+    All workflow rules in flowcharts.
+    Docs in roo_plan/ folder.
+    USE APPLY_DIFF, NOT WRITE_TO_FILE, WHEN EDITING FILES.
+    ONLY USE WRITE_TO_FILE FOR NEW FILES."]
 ```
 
 ## Document Structure & Review Rules
@@ -72,35 +83,35 @@ graph TD
   
   %% Document update and review rules
   UpdateRules["Document Update Rules:
-  • productContext: Only when core purpose changes (explicit approval)
-  • systemPatterns: When architecture patterns change (technical review)
-  • techContext: When tech stack changes (validation required)
-  • progress: Status changes (maintain Status Legend)
-  • activeContext: Focus changes (track dependencies)"]
+  productContext: Only when core purpose changes (explicit approval).
+  systemPatterns: When architecture patterns change (technical review).
+  techContext: When tech stack changes (validation required).
+  progress: Status changes (maintain Status Legend).
+  activeContext: Focus changes (track dependencies)."]
   
   UpdateRules --> UpdateProcess
   
   ReviewPatterns["Review Patterns:
-  • Boomerang Startup: ALL documents sequentially (1→5)
-  • Subtask Startup: ONLY content relevant to subtask"]
+  Boomerang Startup: ALL documents sequentially (1→5).
+  Subtask Startup: ONLY content relevant to subtask."]
   
   %% Document update process
   UpdateProcess["Document Update Process:
-  1. Review current content
-  2. Validate against document rules
-  3. Get explicit user approval
-  4. Use apply_diff for precise updates
-  5. Verify document integrity"]
+  Review current content.
+  Validate against document rules.
+  Get explicit user approval.
+  Use APPLY_DIFF for precise updates.
+  Verify document integrity."]
   
   UpdateProcess --> CriticalRules
   
   %% Critical document update rules
   CriticalRules["CRITICAL DOCUMENT UPDATE RULES:
-  - All Boomerang Memory Bank documents must remain in roo_plan/ folder
-  - Document updates require appropriate level approvals
-  - Progress.md must maintain its Status Legend
-  - Documents must use simple structure without protocol sections
-  - apply_diff must be used for all document updates"]
+  All Boomerang Memory Bank documents must remain in roo_plan/ folder.
+  Document updates require appropriate level approvals.
+  Progress.md must maintain its Status Legend.
+  Documents must use simple structure without protocol sections.
+  APPLY_DIFF must be used for all document updates."]
   
   %% Connect review patterns to documents
   ReviewPatterns --> PB
@@ -133,12 +144,19 @@ sequenceDiagram
     alt New Project (No Boomerang Memory Bank)
         User->>Init: Start New Project
         Init->>Init: Create all required documents
+        
+        loop Context Gathering Loop
+            Init->>Explorer: TOOL: new_task (gather initial context)
+            Explorer->>Init: TOOL: attempt_completion (initial findings)
+        end
+        
         Init->>Startup: TOOL: switch_mode (initialization complete)
     else Existing Project
         User->>Startup: Start Task
     end
     
-    Startup->>Boomerang: TOOL: switch_mode (after full document review)
+    Note right of Startup: Use ask_followup_question and then switch_mode
+    Startup->>Boomerang: TOOL: ask_followup_question and then switch_mode (after full document review)
     
     Note over User,Update: PLANNING PHASE
     
@@ -150,7 +168,7 @@ sequenceDiagram
     Note over User,Update: EXECUTION PHASE
     
     loop For Each Subtask with Task Classification
-        Note over Boomerang: Task Classification uses new_task tool
+        Note over Boomerang: Task Classification uses new_task tool explicitly
         alt Implementation Task
             Note right of Boomerang: Classified as Implementation
             Boomerang->>SubStartup: TOOL: new_task (implementation subtask)
@@ -178,12 +196,13 @@ sequenceDiagram
     Note over User,Update: Task completion and new task cycle
     Boomerang->>User: Task complete
     User->>Startup: Start New Task (optional)
-    Startup->>Boomerang: TOOL: switch_mode (after full document review)
+    Note right of Startup: Use ask_followup_question and then switch_mode
+    Startup->>Boomerang: TOOL: ask_followup_question and then switch_mode (after full document review)
     
     Note over User,Update: KEY MODE TRANSITIONS:
-    Note over User,Update: • Code → Debug: When errors encountered
-    Note over User,Update: • Boomerang → Update: When all subtasks complete
-    Note over User,Update: • Task Completion → New Task: Optional continuation
+    Note over User,Update: Code → Debug: When errors encountered
+    Note over User,Update: Boomerang → Update: When all subtasks complete
+    Note over User,Update: Task Completion → New Task: Optional continuation
 ```
 
 

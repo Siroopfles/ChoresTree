@@ -65,6 +65,33 @@
   - Persistent messages
   - Dead letter queuing
 
+## V2 Architecture
+
+### Codebase Structure
+- src/v2/
+  - atomic/       # Atomic Design componenten
+    - atoms/      # Basis types, entities, validation
+    - molecules/  # Services, repositories, handlers
+    - organisms/  # Business flows, orchestration
+  - core/         # Core systeem componenten
+  - config/       # Systeem configuratie
+
+### Design Patterns
+- Event-Driven architectuur via EventBus
+- Repository pattern voor data access
+- Dependency Injection in services
+- Template Method in workflows
+- Strategy pattern voor validatie
+- Observer pattern voor events
+
+### Technical Improvements
+- Strict TypeScript type safety
+- Redis caching integratie
+- Event-driven updates
+- Geautomatiseerde logging
+- Performance optimalisaties
+
+
 ## Development Environment
 
 ### Required Tools
