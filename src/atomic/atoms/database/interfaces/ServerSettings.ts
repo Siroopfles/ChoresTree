@@ -1,5 +1,14 @@
 import { IBaseEntity, IServerScoped } from './BaseEntity';
 
+export interface CommandPermissions {
+  allowedRoles: string[];
+  deniedRoles: string[];
+}
+
+export interface CommandPermissionsMap {
+  [command: string]: CommandPermissions;
+}
+
 export interface IServerSettings extends IBaseEntity, IServerScoped {
   defaultReminderFrequency: number; // in minutes
   defaultTaskPriority: string;
@@ -9,6 +18,7 @@ export interface IServerSettings extends IBaseEntity, IServerScoped {
   managerRoleIds: string[];
   enabledFeatures: EnabledFeatures;
   customCategories: string[];
+  commandPermissions: CommandPermissionsMap;
 }
 
 export interface EnabledFeatures {
@@ -32,4 +42,5 @@ export const DEFAULT_SERVER_SETTINGS: Partial<IServerSettings> = {
     statistics: true,
   },
   customCategories: ['General', 'Maintenance', 'Events'],
+  commandPermissions: {} // Start met lege permissions map
 };

@@ -1,6 +1,11 @@
 import { Entity, Column } from 'typeorm';
 import { ServerScopedEntity } from './BaseEntity';
-import { IServerSettings, EnabledFeatures, DEFAULT_SERVER_SETTINGS } from '../interfaces/ServerSettings';
+import {
+  IServerSettings,
+  EnabledFeatures,
+  DEFAULT_SERVER_SETTINGS,
+  CommandPermissionsMap
+} from '../interfaces/ServerSettings';
 
 @Entity('server_settings')
 export class ServerSettings extends ServerScopedEntity implements IServerSettings {
@@ -40,6 +45,11 @@ export class ServerSettings extends ServerScopedEntity implements IServerSetting
   })
   customCategories: string[];
 
+  @Column('jsonb', {
+    default: DEFAULT_SERVER_SETTINGS.commandPermissions
+  })
+  commandPermissions: CommandPermissionsMap;
+
   // Utility methodes
   isFeatureEnabled(feature: keyof EnabledFeatures): boolean {
     return this.enabledFeatures[feature] || false;
@@ -68,5 +78,22 @@ export class ServerSettings extends ServerScopedEntity implements IServerSetting
     if (index > -1) {
       this.customCategories.splice(index, 1);
     }
+  }
+
+  hasCommandPermission(roleIds: string[], command: string): boolean {
+    const permissions = this.commandPermissions[command];
+    if (!permissions) return true; // Standaard toegestaan als er geen specifieke permissions zijn
+
+    // Check eerst denied roles (deze hebben voorrang)
+    if (permissions.deniedRoles.some(deniedRole => roleIds.includes(deniedRole))) {
+      return false;
+    }
+
+    // Als er allowed roles zijn, moet de gebruiker er één hebben
+    if (permissions.allowedRoles.length > 0) {
+      return permissions.allowedRoles.some(allowedRole => roleIds.includes(allowedRole));
+    }
+
+    return true; // Standaard toegestaan als er geen allowed roles zijn gespecificeerd
   }
 }

@@ -2,18 +2,30 @@ import { AppDataSource, initializeDatabase } from '@/config/database';
 import { TaskRepository } from '@/atomic/molecules/database/repositories/TaskRepository';
 import { ServerSettingsRepository } from '@/atomic/molecules/database/repositories/ServerSettingsRepository';
 import { ConfigRepository } from '@/atomic/molecules/database/repositories/ConfigRepository';
+import { ConfigAuditLogRepository } from '@/atomic/molecules/database/repositories/ConfigAuditLogRepository';
+import { NotificationTemplateRepository } from '@/atomic/molecules/database/repositories/NotificationTemplateRepository';
+import { ReminderScheduleRepository } from '@/atomic/molecules/database/repositories/ReminderScheduleRepository';
+import { NotificationPreferenceRepository } from '@/atomic/molecules/database/repositories/NotificationPreferenceRepository';
 
 export class DatabaseService {
   private static instance: DatabaseService;
   private taskRepository: TaskRepository;
   private serverSettingsRepository: ServerSettingsRepository;
   private configRepository: ConfigRepository;
+  private configAuditLogRepository: ConfigAuditLogRepository;
+  private notificationTemplateRepository: NotificationTemplateRepository;
+  private reminderScheduleRepository: ReminderScheduleRepository;
+  private notificationPreferenceRepository: NotificationPreferenceRepository;
   private isInitialized = false;
 
   private constructor() {
     this.taskRepository = new TaskRepository();
     this.serverSettingsRepository = new ServerSettingsRepository();
     this.configRepository = new ConfigRepository();
+    this.configAuditLogRepository = new ConfigAuditLogRepository();
+    this.notificationTemplateRepository = new NotificationTemplateRepository();
+    this.reminderScheduleRepository = new ReminderScheduleRepository();
+    this.notificationPreferenceRepository = new NotificationPreferenceRepository();
   }
 
   public static getInstance(): DatabaseService {
@@ -47,6 +59,21 @@ export class DatabaseService {
     return this.taskRepository;
   }
 
+  public getNotificationTemplateRepository(): NotificationTemplateRepository {
+    this.ensureInitialized();
+    return this.notificationTemplateRepository;
+  }
+
+  public getReminderScheduleRepository(): ReminderScheduleRepository {
+    this.ensureInitialized();
+    return this.reminderScheduleRepository;
+  }
+
+  public getNotificationPreferenceRepository(): NotificationPreferenceRepository {
+    this.ensureInitialized();
+    return this.notificationPreferenceRepository;
+  }
+
   public getServerSettingsRepository(): ServerSettingsRepository {
     this.ensureInitialized();
     return this.serverSettingsRepository;
@@ -55,6 +82,11 @@ export class DatabaseService {
   public getConfigRepository(): ConfigRepository {
     this.ensureInitialized();
     return this.configRepository;
+  }
+
+  public getConfigAuditLogRepository(): ConfigAuditLogRepository {
+    this.ensureInitialized();
+    return this.configAuditLogRepository;
   }
 
   public async cleanup(): Promise<void> {

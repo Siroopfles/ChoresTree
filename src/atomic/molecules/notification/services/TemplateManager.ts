@@ -69,20 +69,23 @@ export class TemplateManager {
     const template = this.getTemplate(templateId);
     validateTemplateVariables(template, variables);
 
-    let { title, content } = template;
+    // Split template in title and message
+    const [title, ...messageParts] = template.template.split('\n');
+    const message = messageParts.join('\n');
 
-    // Replace variables in title and content
-    template.variables.forEach((variable: string) => {
-      const value = variables[variable];
-      const pattern = new RegExp(`{${variable}}`, 'g');
-      
-      title = title.replace(pattern, value);
-      content = content.replace(pattern, value);
-    });
+    // Replace all variables in both title and message
+    const replaceVariables = (text: string): string => {
+      let result = text;
+      for (const [key, value] of Object.entries(variables)) {
+        const pattern = new RegExp(`{${key}}`, 'g');
+        result = result.replace(pattern, value);
+      }
+      return result;
+    };
 
     return {
-      title,
-      message: content,
+      title: replaceVariables(title),
+      message: replaceVariables(message),
     };
   }
 
