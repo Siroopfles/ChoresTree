@@ -1,6 +1,13 @@
 import { Redis } from 'ioredis';
 import { Logger } from '../../../utils/logger';
-import { CacheProvider, CacheProviderOptions, CacheStats } from './CacheProvider';
+import {
+  CacheProvider,
+  CacheProviderOptions,
+  CacheStats,
+  CacheOptions,
+  CacheDependency,
+  defaultStatsConverter
+} from './CacheProvider';
 
 export class RedisCacheProvider implements CacheProvider {
   private readonly logger: Logger;
@@ -61,23 +68,85 @@ export class RedisCacheProvider implements CacheProvider {
     }
   }
 
-  async set<T>(key: string, value: T, ttl?: number): Promise<void> {
+  async set<T>(key: string, value: T, options?: CacheOptions): Promise<void> {
     try {
       const cacheKey = this.generateKey(key);
       const serializedValue = JSON.stringify(value);
-      const finalTTL = ttl ?? this.options.ttl;
+      const finalTTL = options?.ttl ?? this.options.ttl;
+
+      const pipeline = this.redis.pipeline();
 
       if (finalTTL) {
-        await this.redis.setex(cacheKey, finalTTL, serializedValue);
+        pipeline.setex(cacheKey, finalTTL, serializedValue);
       } else {
-        await this.redis.set(cacheKey, serializedValue);
+        pipeline.set(cacheKey, serializedValue);
       }
-      
+
+      // Sla dependencies op indien aanwezig
+      if (options?.dependencies?.length) {
+        const dependencyKey = `${cacheKey}:deps`;
+        pipeline.del(dependencyKey);
+        pipeline.sadd(dependencyKey, ...options.dependencies.map(d => d.key));
+      }
+
+      // Sla tags op indien aanwezig
+      if (options?.tags?.length) {
+        const tagKeys = options.tags.map(tag => `tag:${tag}`);
+        for (const tagKey of tagKeys) {
+          pipeline.sadd(tagKey, cacheKey);
+        }
+      }
+
+      await pipeline.exec();
       await this.updateStats(true);
     } catch (error) {
       this.logger.error('Cache set error:', error instanceof Error ? error.message : 'Unknown error');
       throw error;
     }
+  }
+
+  async invalidateDependencies(key: string, maxDepth = this.options.maxDependencyDepth ?? 3): Promise<void> {
+    const visited = new Set<string>();
+    const queue = [this.generateKey(key)];
+    let depth = 0;
+
+    while (queue.length > 0 && depth < maxDepth) {
+      const currentKey = queue.shift()!;
+      if (visited.has(currentKey)) continue;
+      visited.add(currentKey);
+
+      const dependencyKey = `${currentKey}:deps`;
+      const dependencies = await this.redis.smembers(dependencyKey);
+      
+      for (const dep of dependencies) {
+        queue.push(this.generateKey(dep));
+      }
+
+      await this.redis.del(currentKey, dependencyKey);
+      depth++;
+    }
+  }
+
+  async getDependencies(key: string): Promise<CacheDependency[]> {
+    const cacheKey = this.generateKey(key);
+    const dependencyKey = `${cacheKey}:deps`;
+    const dependencies = await this.redis.smembers(dependencyKey);
+    
+    return dependencies.map(dep => ({ key: dep }));
+  }
+
+  async invalidateByTag(tag: string): Promise<void> {
+    const tagKey = `tag:${tag}`;
+    const keys = await this.redis.smembers(tagKey);
+    
+    if (keys.length > 0) {
+      await this.redis.del(...keys, tagKey);
+    }
+  }
+
+  async getKeysByTag(tag: string): Promise<string[]> {
+    const tagKey = `tag:${tag}`;
+    return this.redis.smembers(tagKey);
   }
 
   async delete(key: string): Promise<void> {
@@ -105,20 +174,19 @@ export class RedisCacheProvider implements CacheProvider {
     }
   }
 
-  async writeThrough<T>(key: string, value: T, ttl?: number): Promise<void> {
-    await this.set(key, value, ttl);
+  async writeThrough<T>(key: string, value: T, options?: CacheOptions): Promise<void> {
+    await this.set(key, value, options);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async writeAround<T>(_key: string, _value: T): Promise<void> {
-    // Intentionally skip cache
-    return;
+  async writeAround<T>(key: string, value: T, options?: CacheOptions): Promise<void> {
+    await this.delete(key);
+    await this.set(key, value, options);
   }
 
   async getOrSet<T>(
     key: string,
     factory: () => Promise<T>,
-    ttl?: number
+    options?: CacheOptions
   ): Promise<T> {
     const cached = await this.get<T>(key);
     if (cached !== null) {
@@ -126,7 +194,7 @@ export class RedisCacheProvider implements CacheProvider {
     }
 
     const value = await factory();
-    await this.set(key, value, ttl);
+    await this.set(key, value, options);
     return value;
   }
 
@@ -151,7 +219,7 @@ export class RedisCacheProvider implements CacheProvider {
     }
   }
 
-  async mset(keyValuePairs: [string, unknown][], ttl?: number): Promise<void> {
+  async mset(keyValuePairs: [string, unknown][], options?: CacheOptions): Promise<void> {
     try {
       const pipeline = this.redis.pipeline();
       
@@ -159,10 +227,25 @@ export class RedisCacheProvider implements CacheProvider {
         const cacheKey = this.generateKey(key);
         const serializedValue = JSON.stringify(value);
         
-        if (ttl) {
-          pipeline.setex(cacheKey, ttl, serializedValue);
+        if (options?.ttl) {
+          pipeline.setex(cacheKey, options.ttl, serializedValue);
         } else {
           pipeline.set(cacheKey, serializedValue);
+        }
+
+        // Sla dependencies op indien aanwezig
+        if (options?.dependencies?.length) {
+          const dependencyKey = `${cacheKey}:deps`;
+          pipeline.del(dependencyKey);
+          pipeline.sadd(dependencyKey, ...options.dependencies.map(d => d.key));
+        }
+
+        // Sla tags op indien aanwezig
+        if (options?.tags?.length) {
+          const tagKeys = options.tags.map(tag => `tag:${tag}`);
+          for (const tagKey of tagKeys) {
+            pipeline.sadd(tagKey, cacheKey);
+          }
         }
       }
 
@@ -196,18 +279,11 @@ export class RedisCacheProvider implements CacheProvider {
     }
   }
 
-  async getStats(): Promise<{
-    hitRate: number;
-    missRate: number;
-    memoryUsage: number;
-    totalOperations: number;
-  }> {
-    const total = this.stats.hits + this.stats.misses;
-    return {
-      hitRate: total > 0 ? this.stats.hits / total : 0,
-      missRate: total > 0 ? this.stats.misses / total : 0,
-      memoryUsage: this.stats.memoryUsed,
-      totalOperations: this.stats.operations
-    };
+  async getStats(): Promise<CacheStats> {
+    return this.stats;
+  }
+
+  getLegacyStats() {
+    return defaultStatsConverter(this.stats);
   }
 }

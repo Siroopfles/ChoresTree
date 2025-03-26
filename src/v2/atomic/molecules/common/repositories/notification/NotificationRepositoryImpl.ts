@@ -2,11 +2,14 @@ import { Repository, EntityTarget } from 'typeorm';
 import { NotificationEntity } from '@v2/atomic/atoms/database/entities/NotificationEntity';
 import { BaseRepositoryImpl } from '../BaseRepositoryImpl';
 import { CacheProvider, Cacheable } from '@v2/core/cache';
+import { NotificationQueryBuilder } from '../../query/builders/NotificationQueryBuilder';
 
 /**
  * Notification repository implementation with caching support
  */
 export class NotificationRepositoryImpl extends BaseRepositoryImpl<NotificationEntity> {
+  private queryBuilder: NotificationQueryBuilder;
+
   constructor(
     repository: Repository<NotificationEntity>,
     cacheProvider: CacheProvider
@@ -17,6 +20,7 @@ export class NotificationRepositoryImpl extends BaseRepositoryImpl<NotificationE
       NotificationEntity as EntityTarget<NotificationEntity>,
       cacheProvider
     );
+    this.queryBuilder = new NotificationQueryBuilder(repository);
   }
 
   /**
@@ -24,10 +28,7 @@ export class NotificationRepositoryImpl extends BaseRepositoryImpl<NotificationE
    */
   @Cacheable({ keyPrefix: 'due-notifications', ttl: 60, strategy: 'cache-aside' }) // Short TTL for active notifications
   async findDueNotifications(): Promise<NotificationEntity[]> {
-    return this.createQueryBuilder('notification')
-      .where('notification.status = :status', { status: 'PENDING' })
-      .andWhere('notification.scheduledFor <= :now', { now: new Date() })
-      .getMany();
+    return this.queryBuilder.findPendingNotifications();
   }
 
   /**
@@ -35,7 +36,11 @@ export class NotificationRepositoryImpl extends BaseRepositoryImpl<NotificationE
    */
   @Cacheable({ keyPrefix: 'task-notifications', strategy: 'cache-aside' })
   async findByTaskId(taskId: string): Promise<NotificationEntity[]> {
-    return this.find({ taskId });
+    return this.queryBuilder.findNotifications({
+      taskId,
+      withTask: true,
+      orderBy: 'scheduledFor'
+    });
   }
 
   /**
@@ -43,7 +48,11 @@ export class NotificationRepositoryImpl extends BaseRepositoryImpl<NotificationE
    */
   @Cacheable({ keyPrefix: 'user-notifications', strategy: 'cache-aside' })
   async findByTargetUser(userId: string): Promise<NotificationEntity[]> {
-    return this.find({ targetUserId: userId });
+    return this.queryBuilder.findNotifications({
+      targetUserId: userId,
+      withTask: true,
+      orderBy: 'scheduledFor'
+    });
   }
 
   /**
@@ -51,16 +60,13 @@ export class NotificationRepositoryImpl extends BaseRepositoryImpl<NotificationE
    */
   @Cacheable({ keyPrefix: 'recurring-notifications', strategy: 'cache-aside' })
   async findActiveRecurringNotifications(): Promise<NotificationEntity[]> {
-    const now = new Date();
-    
-    return this.createQueryBuilder('notification')
-      .where('notification.isRecurring = :isRecurring', { isRecurring: true })
-      .andWhere('notification.status != :status', { status: 'CANCELLED' })
-      .andWhere(
-        '(notification.recurrenceEndDate IS NULL OR notification.recurrenceEndDate >= :now)',
-        { now }
-      )
-      .getMany();
+    return this.queryBuilder.findNotifications({
+      isRecurring: true,
+      statuses: ['PENDING', 'SENT'],
+      withTask: true,
+      scheduledAfter: new Date(),
+      orderBy: 'scheduledFor'
+    });
   }
 
   /**
@@ -68,10 +74,7 @@ export class NotificationRepositoryImpl extends BaseRepositoryImpl<NotificationE
    */
   @Cacheable({ keyPrefix: 'retry-notifications', strategy: 'cache-aside' })
   async findRetryableNotifications(): Promise<NotificationEntity[]> {
-    return this.createQueryBuilder('notification')
-      .where('notification.status = :status', { status: 'FAILED' })
-      .andWhere('notification.retryCount < :maxRetries', { maxRetries: 3 })
-      .getMany();
+    return this.queryBuilder.findRetryableNotifications();
   }
 
   /**
@@ -105,13 +108,13 @@ export class NotificationRepositoryImpl extends BaseRepositoryImpl<NotificationE
     startDate: Date,
     endDate: Date
   ): Promise<NotificationEntity[]> {
-    return this.createQueryBuilder('notification')
-      .where('notification.scheduledFor BETWEEN :startDate AND :endDate', {
-        startDate,
-        endDate
-      })
-      .andWhere('notification.status = :status', { status: 'PENDING' })
-      .getMany();
+    return this.queryBuilder.findNotifications({
+      scheduledAfter: startDate,
+      scheduledBefore: endDate,
+      statuses: ['PENDING'],
+      withTask: true,
+      orderBy: 'scheduledFor'
+    });
   }
 
   /**
@@ -124,36 +127,35 @@ export class NotificationRepositoryImpl extends BaseRepositoryImpl<NotificationE
     failed: number;
     retryable: number;
   }> {
-    const [pending, sent, failed, retryable] = await Promise.all([
-      this.count({ status: 'PENDING' }),
-      this.count({ status: 'SENT' }),
-      this.count({ status: 'FAILED' }),
-      this.createQueryBuilder('notification')
-        .where('notification.status = :status', { status: 'FAILED' })
-        .andWhere('notification.retryCount < :maxRetries', { maxRetries: 3 })
-        .getCount()
-    ]);
-
-    return {
-      pending,
-      sent,
-      failed,
-      retryable
-    };
+    return this.queryBuilder.getNotificationStatistics(this.getCurrentServerId());
   }
 
   /**
    * Cancel all notifications for a task
    */
   async cancelTaskNotifications(taskId: string): Promise<void> {
-    await this.createQueryBuilder('notification')
-      .update(NotificationEntity)
-      .set({ status: 'CANCELLED' })
-      .where('taskId = :taskId', { taskId })
-      .andWhere('status = :status', { status: 'PENDING' })
-      .execute();
+    // Gebruik een geoptimaliseerde bulk update query
+    await this.repository.update(
+      {
+        taskId,
+        status: 'PENDING'
+      },
+      {
+        status: 'CANCELLED'
+      }
+    );
     
-    await this.clearEntityCache();
+    // Invalideer gerelateerde caches
+    await Promise.all([
+      this.clearEntityCache(),
+      this.cacheProvider.deletePattern(`notification-stats:*`),
+      this.cacheProvider.deletePattern(`task-notifications:${taskId}:*`)
+    ]);
+  }
+
+  private getCurrentServerId(): string {
+    // TODO: Implement server context management
+    throw new Error('Not implemented');
   }
 
   /**

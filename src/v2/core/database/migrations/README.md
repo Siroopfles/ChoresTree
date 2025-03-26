@@ -1,41 +1,82 @@
-# Database Migrations
+# Database Migratie Systeem
 
-This directory contains all database migrations for the ChoresTree Discord Bot.
+## Overzicht
+Dit systeem beheert database schema versioning en data migraties voor de ChoresTree Discord Bot. Het gebruikt TypeORM's migratie systeem met extra validatie en veiligheidsmaatregelen.
 
-## Migration Guidelines
+## Features
+- Schema versioning met TypeORM
+- Transactie-veilige migraties
+- Automatische rollback bij fouten
+- Validatie checks
+- Geautomatiseerde timestamp generatie
+- UUID support
 
-- Use descriptive names for migration files
-- Each migration should be reversible (up/down)
-- Add clear comments explaining complex changes
-- Test migrations in development first
-- Include related entity changes
+## Scripts
 
-## Running Migrations
-
+### Genereren van een nieuwe migratie
 ```bash
-# Generate new migration
-npm run typeorm:generate-migration --name=MigrationName
-
-# Run pending migrations
-npm run typeorm:run-migrations
-
-# Revert last migration
-npm run typeorm:revert-migration
+npm run migration:generate <name> [description]
 ```
 
-## Migration Structure
+Bijvoorbeeld:
+```bash
+npm run migration:generate CreateUserTable "Adds user management table"
+```
 
-```typescript
-import { MigrationInterface, QueryRunner } from "typeorm";
+### Uitvoeren van migraties
+```bash
+# Uitvoeren van pending migraties
+npm run migration:run
 
-export class MigrationName implements MigrationInterface {
-    name = 'MigrationName'
+# Rollback van laatste migratie
+npm run migration:revert
 
-    public async up(queryRunner: QueryRunner): Promise<void> {
-        // Changes to apply
-    }
+# Uitvoeren zonder transactie
+npm run migration:run --no-transaction
 
-    public async down(queryRunner: QueryRunner): Promise<void> {
-        // How to revert changes
-    }
-}
+# Dry run (fake migratie)
+npm run migration:run --fake
+```
+
+### Migratie Status
+```bash
+npm run migration:show
+```
+
+## Migratie Template
+Elke migratie volgt een vast template met:
+- Transactie support
+- Error handling
+- Logging
+- Rollback procedures
+
+## Validatie Checks
+Het systeem voert automatisch de volgende validaties uit:
+1. Schema integriteit
+2. Foreign key constraints
+3. Index validatie
+4. Data integriteit
+
+## Best Practices
+1. Altijd `up()` en `down()` methods implementeren
+2. Transacties gebruiken voor atomic updates
+3. Duidelijke logging toevoegen
+4. Validaties toevoegen waar nodig
+5. Data backups maken voor grote migraties
+
+## Veiligheid
+- Alle schema changes zijn transactioneel
+- Automatische rollback bij fouten
+- Validatie voor en na migratie
+- Version tracking in BaseEntity
+
+## Folder Structuur
+```
+migrations/
+├── scripts/          # Migratie scripts
+│   ├── generate.ts   # Voor nieuwe migraties
+│   └── run.ts        # Voor uitvoeren migraties
+├── templates/        # Migratie templates
+│   └── migration.template.txt
+└── versions/         # Migratie bestanden
+    └── YYYYMMDDHHMMSS-MigrationName.ts

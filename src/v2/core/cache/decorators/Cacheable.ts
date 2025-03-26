@@ -47,7 +47,7 @@ export function Cacheable(options: CacheableOptions = {}) {
         switch (options.strategy) {
           case 'write-through':
             const result = await originalMethod.apply(this, args);
-            await provider.writeThrough(cacheKey, result, options.ttl);
+            await provider.writeThrough(cacheKey, result, { ttl: options.ttl });
             return result;
 
           case 'write-around':
@@ -60,7 +60,7 @@ export function Cacheable(options: CacheableOptions = {}) {
             return provider.getOrSet(
               cacheKey,
               () => originalMethod.apply(this, args),
-              options.ttl
+              { ttl: options.ttl }
             );
         }
       } catch {

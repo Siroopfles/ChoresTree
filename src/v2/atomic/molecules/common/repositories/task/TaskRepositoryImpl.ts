@@ -1,5 +1,6 @@
-import { Repository, EntityTarget, In, Between } from 'typeorm';
+import { Repository, EntityTarget } from 'typeorm';
 import { TaskEntity } from '@v2/atomic/atoms/database/entities/TaskEntity';
+import { TaskQueryBuilder } from '../../query/builders/TaskQueryBuilder';
 import { BaseRepositoryImpl } from '../BaseRepositoryImpl';
 import { CacheProvider, Cacheable } from '@v2/core/cache';
 
@@ -7,6 +8,7 @@ import { CacheProvider, Cacheable } from '@v2/core/cache';
  * Task repository implementation with caching support
  */
 export class TaskRepositoryImpl extends BaseRepositoryImpl<TaskEntity> {
+  private queryBuilder: TaskQueryBuilder;
   constructor(
     repository: Repository<TaskEntity>,
     cacheProvider: CacheProvider
@@ -17,6 +19,7 @@ export class TaskRepositoryImpl extends BaseRepositoryImpl<TaskEntity> {
       TaskEntity as EntityTarget<TaskEntity>,
       cacheProvider
     );
+    this.queryBuilder = new TaskQueryBuilder(repository);
   }
 
   /**
@@ -24,7 +27,11 @@ export class TaskRepositoryImpl extends BaseRepositoryImpl<TaskEntity> {
    */
   @Cacheable({ keyPrefix: 'server-tasks', strategy: 'cache-aside' })
   async findByServerId(serverId: string): Promise<TaskEntity[]> {
-    return this.find({ serverId });
+    return this.queryBuilder.findTasks({
+      serverId,
+      withAssignee: true,
+      orderBy: 'dueDate'
+    });
   }
 
   /**
@@ -32,7 +39,12 @@ export class TaskRepositoryImpl extends BaseRepositoryImpl<TaskEntity> {
    */
   @Cacheable({ keyPrefix: 'user-tasks', strategy: 'cache-aside' })
   async findByAssignedUser(userId: string): Promise<TaskEntity[]> {
-    return this.find({ assignedUserId: userId });
+    return this.queryBuilder.findTasks({
+      assignedUserId: userId,
+      withAssignee: true,
+      withServer: true,
+      orderBy: 'dueDate'
+    });
   }
 
   /**
@@ -40,7 +52,11 @@ export class TaskRepositoryImpl extends BaseRepositoryImpl<TaskEntity> {
    */
   @Cacheable({ keyPrefix: 'status-tasks', strategy: 'cache-aside' })
   async findByStatus(status: TaskEntity['status']): Promise<TaskEntity[]> {
-    return this.find({ status });
+    return this.queryBuilder.findTasks({
+      status: [status],
+      withAssignee: true,
+      orderBy: 'dueDate'
+    });
   }
 
   /**
@@ -48,12 +64,7 @@ export class TaskRepositoryImpl extends BaseRepositoryImpl<TaskEntity> {
    */
   @Cacheable({ keyPrefix: 'overdue-tasks', strategy: 'cache-aside' })
   async findOverdueTasks(): Promise<TaskEntity[]> {
-    return this.createQueryBuilder('task')
-      .where('task.dueDate < :now', { now: new Date() })
-      .andWhere('task.status NOT IN (:...completedStatuses)', {
-        completedStatuses: ['COMPLETED', 'CANCELLED']
-      })
-      .getMany();
+    return this.queryBuilder.findTasksNeedingAttention(this.getCurrentServerId());
   }
 
   /**
@@ -61,8 +72,11 @@ export class TaskRepositoryImpl extends BaseRepositoryImpl<TaskEntity> {
    */
   @Cacheable({ keyPrefix: 'due-range-tasks', strategy: 'cache-aside' })
   async findTasksDueInRange(startDate: Date, endDate: Date): Promise<TaskEntity[]> {
-    return this.find({
-      dueDate: Between(startDate, endDate)
+    return this.queryBuilder.findTasks({
+      dueAfter: startDate,
+      dueBefore: endDate,
+      withAssignee: true,
+      orderBy: 'dueDate'
     });
   }
 
@@ -71,17 +85,47 @@ export class TaskRepositoryImpl extends BaseRepositoryImpl<TaskEntity> {
    */
   @Cacheable({ keyPrefix: 'priority-tasks', strategy: 'cache-aside' })
   async findByPriority(priority: TaskEntity['priority']): Promise<TaskEntity[]> {
-    return this.find({ priority });
+    return this.queryBuilder.findTasks({
+      priority: [priority],
+      withAssignee: true,
+      orderBy: 'dueDate'
+    });
   }
 
   /**
    * Find tasks in specific channels
    */
   @Cacheable({ keyPrefix: 'channel-tasks', strategy: 'cache-aside' })
+  /**
+   * Find tasks for specified channels with batched processing
+   */
   async findByChannels(channelIds: string[]): Promise<TaskEntity[]> {
-    return this.find({
-      channelId: In(channelIds)
-    });
+    const batchSize = 10;
+    const tasks: TaskEntity[] = [];
+    
+    // Process channels in batches for optimale performance
+    for (let i = 0; i < channelIds.length; i += batchSize) {
+      const batch = channelIds.slice(i, i + batchSize);
+      const batchPromises = batch.map(channelId =>
+        this.queryBuilder.findTasks({
+          channelId,
+          withAssignee: true,
+          withServer: true,
+          orderBy: 'dueDate'
+        })
+      );
+
+      // Voer batch parallel uit met rate limiting
+      const batchResults = await Promise.all(batchPromises);
+      tasks.push(...batchResults.flat());
+
+      // Voorkom rate limiting issues
+      if (i + batchSize < channelIds.length) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    }
+
+    return tasks;
   }
 
   /**
@@ -145,13 +189,11 @@ export class TaskRepositoryImpl extends BaseRepositoryImpl<TaskEntity> {
     overdue: number;
     pending: number;
   }> {
-    const tasks = await this.findByServerId(serverId);
-    
-    return {
-      total: tasks.length,
-      completed: tasks.filter(t => t.status === 'COMPLETED').length,
-      overdue: tasks.filter(t => t.isOverdue()).length,
-      pending: tasks.filter(t => t.status === 'PENDING').length
-    };
+    return this.queryBuilder.getTaskStatistics(serverId);
+  }
+
+  private getCurrentServerId(): string {
+    // TODO: Implement server context management
+    throw new Error('Not implemented');
   }
 }

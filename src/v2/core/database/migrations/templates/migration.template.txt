@@ -1,0 +1,67 @@
+import { MigrationInterface, QueryRunner } from 'typeorm';
+import { Logger } from '../../../utils/logger';
+
+/**
+ * {{DESCRIPTION}}
+ * 
+ * @class {{MIGRATION_NAME}}
+ * @implements {MigrationInterface}
+ */
+export class {{MIGRATION_NAME}} implements MigrationInterface {
+    private readonly logger = new Logger('{{MIGRATION_NAME}}');
+
+    /**
+     * Voert de migratie uit
+     * @param queryRunner - TypeORM QueryRunner instance
+     */
+    public async up(queryRunner: QueryRunner): Promise<void> {
+        this.logger.info(`Starting migration: {{MIGRATION_NAME}}`);
+
+        try {
+            // Start een transactie voor atomic updates
+            await queryRunner.startTransaction();
+
+            // TODO: Implementeer de schema changes
+            // await queryRunner.query(`CREATE TABLE ...`);
+
+            // TODO: Implementeer data migraties indien nodig
+            // await queryRunner.query(`INSERT INTO ...`);
+
+            // Commit de transactie als alles succesvol is
+            await queryRunner.commitTransaction();
+            this.logger.info('Successfully completed migration');
+
+        } catch (error) {
+            // Rollback bij errors
+            await queryRunner.rollbackTransaction();
+            this.logger.error('Failed to execute migration', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Maakt de migratie ongedaan
+     * @param queryRunner - TypeORM QueryRunner instance
+     */
+    public async down(queryRunner: QueryRunner): Promise<void> {
+        this.logger.info('Starting rollback');
+
+        try {
+            // Start een transactie voor atomic rollback
+            await queryRunner.startTransaction();
+
+            // TODO: Implementeer de rollback logic
+            // await queryRunner.query(`DROP TABLE ...`);
+
+            // Commit de transactie als rollback succesvol is
+            await queryRunner.commitTransaction();
+            this.logger.info('Successfully rolled back migration');
+
+        } catch (error) {
+            // Rollback bij errors
+            await queryRunner.rollbackTransaction();
+            this.logger.error('Failed to rollback migration', error);
+            throw error;
+        }
+    }
+}

@@ -34,14 +34,14 @@
 - [DONE] Server settings
 - [DONE] Permissie systeem
 - [DONE] Customization opties
-- [WIP-B] Database setup (v2)
+- [DONE] Database setup (v2)
   - [DONE] Core Database Module (TypeORM configuratie, connection pooling)
   - [DONE] Entity Layer (Server-scoped entities, relaties)
   - [DONE] Repository Layer (Type-safe repositories met caching)
-  - [PLAN] Caching Implementation
-  - [PLAN] Migration Setup
-  - [PLAN] Query Optimization
-  - [PLAN] Monitoring & Maintenance
+  - [DONE] Caching Implementation
+  - [DONE] Migration Setup
+  - [DONE] Query Optimization
+  - [DONE] Monitoring & Maintenance
 
 ## Infrastructure
 

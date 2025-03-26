@@ -1,6 +1,6 @@
 import { Redis } from 'ioredis';
 import { Logger } from '../../utils/logger';
-import type { CacheProvider } from './providers/CacheProvider';
+import { CacheProvider, defaultStatsConverter } from './providers/CacheProvider';
 import { RedisCacheProvider } from './providers/RedisCacheProvider';
 import { MemoryCacheProvider } from './providers/MemoryCacheProvider';
 
@@ -75,7 +75,8 @@ export class CacheModule {
     memoryUsage: number;
     totalOperations: number;
   }> {
-    return this.provider.getStats();
+    const stats = await this.provider.getStats();
+    return defaultStatsConverter(stats);
   }
 
   /**
