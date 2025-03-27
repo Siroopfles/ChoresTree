@@ -1,5 +1,6 @@
-import { Entity, Column } from 'typeorm';
+import { Entity, Column, OneToMany, UpdateDateColumn } from 'typeorm';
 import { BaseEntity } from '../../../../core/database/base/BaseEntity';
+import { TaskEntity } from './TaskEntity';
 
 /**
  * Server entity representing a Discord server using the bot
@@ -33,4 +34,13 @@ export class ServerEntity extends BaseEntity {
 
   @Column({ name: 'admin_role_id', nullable: true })
   adminRoleId?: string;
+
+  @OneToMany(() => TaskEntity, task => task.server, {
+    cascade: true,
+    eager: false
+  })
+  tasks: TaskEntity[];
+
+  @UpdateDateColumn({ name: 'last_active_at' })
+  lastActiveAt: Date;
 }

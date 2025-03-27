@@ -36,6 +36,9 @@ importers:
         specifier: ^3.24.2
         version: 3.24.2
     devDependencies:
+      '@jest/globals':
+        specifier: ^29.7.0
+        version: 29.7.0
       '@types/amqplib':
         specifier: ^0.10.7
         version: 0.10.7

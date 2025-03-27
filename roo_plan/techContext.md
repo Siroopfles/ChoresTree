@@ -132,18 +132,21 @@
   - Path aliases voor @/ imports
 
 #### Current Test Coverage Status
-- Overall dekking:
-  - Statements: 4.96%
-  - Branches: 3.16%
-  - Functions: 4.45%
-  - Lines: 4.95%
+- Overall dekking (significant onder target):
+  - Statements: 4.96% (target: 90%)
+  - Branches: 3.16% (target: 90%)
+  - Functions: 4.45% (target: 90%)
+  - Lines: 4.95% (target: 90%)
 
 #### Test Suites Overview
 - Totaal: 18 test suites
   - Geslaagd: 1 suite
-  - Gefaald: 17 suites
-  - Database initialisatie problemen geïdentificeerd
-  - Performance monitoring via test metrics
+  - Gefaald: 17 suites (database initialisatie issues)
+  - Belangrijkste problemen:
+    * Database service initialisatie failures
+    * Integration test stabiliteit issues
+    * Mock implementaties onvolledig
+    * Performance monitoring incompleet
 
 #### Mock Strategieën
 - Repository mocking voor database operaties
@@ -152,7 +155,10 @@
 - Redis cache mocking voor performance tests
 
 #### Test Performance Metrics
-- Benchmark scenarios gedefinieerd
-- Memory usage tracking geïmplementeerd
-- Response time monitoring
-- Cache hit/miss ratio analyse
+- Benchmark scenarios:
+  * Response tijd per command type
+  * Memory gebruik per operatie
+  * Database query performance
+  * Cache effectiveness metrics
+  * Event processing throughput
+  * Rate limiting impact analyse

@@ -106,10 +106,12 @@
    - Transaction support
 
 2. Event-Driven Architecture
-    - Typed event bus met strict payloads
-    - Domain-specific event handlers
-    - Event sourcing met recovery flows
-    - Async processing met retry strategies
+    - Typed event bus met strict payloads en validatie
+    - Domain-specific event handlers met retry policies
+    - Event sourcing met recovery flows en rollback
+    - Async processing met sophisticated retry strategies
+    - Event persistence met dead letter queuing
+    - Monitoring en metrics per event type
 
 3. Service Layer Pattern
    - Domain-driven services
@@ -124,10 +126,11 @@
    - Configuration builders
 
 ### Cross-Cutting Concerns
-- Gestandaardiseerde error handling met recovery patterns
-- Uitgebreide logging met context tracking
-- Performance monitoring met metrics
-- Sophisticated caching met invalidation
-- Security controls met rate limiting
-- State management met immutability
-- Asynchrone operaties met cancellation support
+- Gestandaardiseerde error handling met domain-specific recovery patterns
+- Uitgebreide logging met gestructureerde context tracking
+- Performance monitoring met gedetailleerde metrics en alerts
+- Sophisticated caching met pattern-based invalidation
+- Security controls met rate limiting en circuit breakers
+- State management met immutability en conflict resolution
+- Asynchrone operaties met cancellation support en timeout handling
+- Breaking changes management met version compatibility

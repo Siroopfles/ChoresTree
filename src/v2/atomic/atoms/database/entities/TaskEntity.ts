@@ -1,6 +1,17 @@
-import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, BeforeUpdate, OneToMany } from 'typeorm';
 import { BaseEntity } from '../../../../core/database/base/BaseEntity';
 import { ServerEntity } from './ServerEntity';
+import { NotificationEntity } from './NotificationEntity';
+
+type TaskStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+
+const VALID_STATUS_TRANSITIONS: Record<TaskStatus, TaskStatus[]> = {
+  'PENDING': ['IN_PROGRESS', 'CANCELLED'],
+  'IN_PROGRESS': ['COMPLETED', 'CANCELLED'],
+  'COMPLETED': [],
+  'CANCELLED': ['PENDING']
+};
 
 /**
  * Task entity representing a task within a server
@@ -18,13 +29,13 @@ export class TaskEntity extends BaseEntity {
   description: string;
 
   @Column({ name: 'status', default: 'PENDING' })
-  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  status: TaskStatus;
 
   @Column({ name: 'due_date', type: 'timestamptz', nullable: true })
   dueDate?: Date;
 
   @Column({ name: 'priority', default: 'MEDIUM' })
-  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  priority: TaskPriority;
 
   @Column({ name: 'assigned_user_id', nullable: true })
   assignedUserId?: string;
@@ -45,6 +56,22 @@ export class TaskEntity extends BaseEntity {
 
   @Column({ name: 'server_id' })
   serverId: string;
+
+  @OneToMany(() => NotificationEntity, notification => notification.task)
+  notifications: NotificationEntity[];
+
+  @BeforeUpdate()
+  validateStatusTransition() {
+    if (this.status !== this.__oldStatus && this.__oldStatus) {
+      const validTransitions = VALID_STATUS_TRANSITIONS[this.__oldStatus];
+      if (!validTransitions.includes(this.status)) {
+        throw new Error(`Invalid status transition from ${this.__oldStatus} to ${this.status}`);
+      }
+    }
+    this.__oldStatus = this.status;
+  }
+
+  private __oldStatus?: TaskStatus;
 
   // Helper methods
   /**
@@ -71,6 +98,39 @@ export class TaskEntity extends BaseEntity {
     if (this.assignedUserId === userId) return true;
     if (this.assignedRoleId && userRoles.includes(this.assignedRoleId)) return true;
     return false;
+  }
+
+  /**
+   * Set task deadline and create reminder notification
+   */
+  async setDeadline(date: Date) {
+    this.dueDate = date;
+    
+    if (this.notifications) {
+      // Remove existing deadline notifications
+      this.notifications = this.notifications.filter(n => n.type !== 'DEADLINE');
+    }
+
+    // Create new deadline notification
+    const notification = new NotificationEntity();
+    notification.task = this;
+    notification.type = 'DEADLINE';
+    notification.scheduledFor = new Date(date.getTime() - 24 * 60 * 60 * 1000); // 1 day before
+    notification.message = `Task "${this.title}" is due in 24 hours`;
+    
+    if (!this.notifications) {
+      this.notifications = [];
+    }
+    this.notifications.push(notification);
+  }
+
+  /**
+   * Validates task assignment
+   */
+  validateAssignment() {
+    if (this.assignedUserId && this.assignedRoleId) {
+      throw new Error('Task cannot be assigned to both user and role');
+    }
   }
 }
 

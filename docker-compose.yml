@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  # Production Database
   postgres:
     image: postgres:15-alpine
     environment:
@@ -12,7 +13,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     command: >
-      postgres 
+      postgres
       -c max_connections=100
       -c shared_buffers=256MB
       -c effective_cache_size=768MB
@@ -25,14 +26,40 @@ services:
       timeout: 5s
       retries: 5
 
+  # Test Database (No persistent volume, optimized for testing)
+  postgres_test:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: ${TEST_DB_USER:-postgres_test}
+      POSTGRES_PASSWORD: ${TEST_DB_PASSWORD:-postgres_test}
+      POSTGRES_DB: ${TEST_DB_NAME:-chorestree_test}
+    ports:
+      - "5433:5432"
+    command: >
+      postgres
+      -c max_connections=20
+      -c shared_buffers=128MB
+      -c effective_cache_size=384MB
+      -c maintenance_work_mem=32MB
+      -c checkpoint_completion_target=0.9
+      -c default_statistics_target=50
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${TEST_DB_USER:-postgres_test}"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
+  # Production Redis
   redis:
     image: redis:7-alpine
     ports:
       - "6379:6379"
     command: >
-      redis-server 
-      --maxmemory 500mb 
-      --maxmemory-policy allkeys-lru 
+      redis-server
+      --maxmemory 500mb
+      --maxmemory-policy allkeys-lru
       --appendonly yes
     volumes:
       - redis_data:/data
@@ -41,6 +68,25 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # Test Redis (No persistent storage, optimized for testing)
+  redis_test:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    command: >
+      redis-server
+      --maxmemory 128mb
+      --maxmemory-policy allkeys-lru
+      --save ""
+      --appendonly no
+    tmpfs:
+      - /data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
 
 volumes:
   postgres_data:
