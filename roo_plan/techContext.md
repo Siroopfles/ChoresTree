@@ -1,164 +1,317 @@
-# Technical Context: ChoresTree Discord Bot
+# Technical Context: ChoresTree Discord Bot V3
 
 ---
 
-## Technology Stack
+## V3 Platform Overview
 
-### Core Technologies
-- Node.js v18.x
-- TypeScript v5.x
+### Core Uitgangspunten
+- Volledig nieuw platform gebaseerd op v2 best practices
+- Modern tech stack met laatste versies
+- Focus op type-safety en modulaire opbouw
+- Event-driven architectuur als basis
+
+## Core Features from V2
+
+### Caching System
+- Multi-provider support (Redis, Memory)
+- Strategy patterns (Cascade, Warmup)
+- Cache decorators (@Cacheable, @CacheInvalidate)
+- Monitoring en metrics
+
+### Event System
+- Event decorators (@EventHandler, @EventPublisher)
+- Event monitoring en metrics
+- Event persistence
+- Error handling
+
+### Monitoring
+- Health checks
+- Performance metrics
+- Database monitoring
+- Cache monitoring
+
+## Technology Stack per Platform Layer
+
+### /atoms Layer
+- TypeScript v5.x (strict mode)
+- Zod v3.x voor validatie
+- class-validator voor entities
+- Type-fest voor utility types
+
+### /molecules Layer
+- TypeORM v0.3.x
+- Repository pattern utilities
+- Service abstractions
+- Event emitter types
+
+### /organisms Layer
+- Express/Fastify v5.x
 - Discord.js v14.x
-- PostgreSQL v15.x
+- Apollo Server v4.x
+- WS v8.x voor WebSockets
+
+### /api Layer
+- REST: Express/Fastify
+- GraphQL: Apollo Server
+- WebSockets: WS
+- OpenAPI/Swagger docs
+
+### /events Layer
+- RabbitMQ v3.x client
+- Event schema validators
+- Publisher abstractions
+- Subscriber patterns
+
+### /role-service Layer
+- Discord.js specifieke types
+- Role management utilities
+- Permission validators
+- Sync mechanisms
+
+### /core Layer
+- Database: PostgreSQL v15.x
+- Caching: Redis v7.x
+- ORM: TypeORM
+- Monitoring: DataDog
+
+### /test Layer
+- Jest v29.x framework
+- Supertest voor API tests
+- Mock utilities
+- Coverage tools
 
 ### Development Tools
-- pnpm (package manager)
+- pnpm v8.x
 - ESLint + Prettier
-- Jest (testing)
-- Docker + Docker Compose
+- Husky voor git hooks
+- Docker + Compose
 
-### Infrastructure
-- GitHub Actions (CI/CD)
-- Railway.app (hosting)
-- CloudFlare (DNS)
-- DataDog (monitoring)
+## Technical Requirements
 
-## Technical Constraints
+### Performance per Component
 
-### Performance Constraints
-- Max 1000 servers ondersteuning
-- Max 100ms response tijd voor commands
-- Max 100MB RAM per instance
-- 99.9% uptime guarantee
+#### /api Layer Performance
+- REST endpoints: < 100ms
+- GraphQL queries: < 200ms
+- WebSocket latency: < 50ms
+- Command handling: < 150ms
+
+#### /core Layer Limits
+- Database: Max 100 connections
+- Redis: Max 500MB memory
+- Event processing: 1000/sec
+- CPU: Max 2 cores per instance
+
+#### Algemene Limieten
+- 1000+ Discord servers
+- 10,000+ concurrent users
+- 100,000+ daily tasks
+- Max 500MB RAM per instance
+
+### Scalability Requirements
+1. Horizontal Scaling
+   - Stateless services
+   - Load balancing ready
+   - Session management
+   - Cache distribution
+
+2. Database Scaling
+   - Connection pooling
+   - Query optimization
+   - Index management
+   - Sharding preparation
+
+3. Event System Scaling
+   - Message partitioning
+   - Consumer groups
+   - Back pressure handling
+   - Event persistence
 
 ### Security Requirements
-- Discord OAuth2 authenticatie
-- Rate limiting per server
-- Data encryptie in rust
-- Regelmatige security audits
+1. Authentication
+   - Discord OAuth2
+   - JWT tokens
+   - Rate limiting
+   - IP filtering
 
-### Scalability Constraints
-- Horizontale scaling mogelijk
-- Database sharding voorbereid
-- Caching strategy implemented
-- Load balancing ready
+2. Data Protection
+   - At-rest encryption
+   - In-transit encryption
+   - PII handling
+   - Data retention
 
-## Dependencies
+3. Access Control
+   - RBAC implementation
+   - Resource isolation
+   - Audit logging
+   - Permission caching
 
-### External Services
-- Discord API
-  - Version: v10
-  - Rate Limits: 50 requests/s
-  - Webhook support
+## Platform Architecture
 
-- Database
-  - Connection pooling
-  - Max connections: 100
-  - Timeout: 5s
+### /atoms Implementation
+```typescript
+// Entity Pattern
+export class TaskEntity {
+  @PrimaryKey()
+  id: string;
 
-### Internal Dependencies
-- Redis voor caching
-  - Version: v7.x
-  - Max memory: 500MB
-  
-- Message Queue
-  - RabbitMQ v3.x
-  - Persistent messages
-  - Dead letter queuing
+  @Column()
+  title: string;
 
-## V2 Architecture
+  @Column()
+  status: TaskStatus;
+}
 
-### Codebase Structure
-- src/v2/
-  - atomic/       # Atomic Design componenten
-    - atoms/      # Basis types, entities, validation
-    - molecules/  # Services, repositories, handlers
-    - organisms/  # Business flows, orchestration
-  - core/         # Core systeem componenten
-  - config/       # Systeem configuratie
+// Interface Pattern
+export interface ITask {
+  readonly id: string;
+  title: string;
+  status: TaskStatus;
+  assignee?: string;
+}
 
-### Design Patterns
-- Event-Driven architectuur via EventBus
-- Repository pattern voor data access
-- Dependency Injection in services
-- Template Method in workflows
-- Strategy pattern voor validatie
-- Observer pattern voor events
+// Validation Schema
+export const taskSchema = z.object({
+  title: z.string().min(1).max(100),
+  status: z.nativeEnum(TaskStatus),
+  assignee: z.string().optional(),
+});
+```
 
-### Technical Improvements
-- Strict TypeScript type safety met domain-specific types
-- Redis caching integratie met sophisticated invalidation
-- Event-driven updates met retry policies
-- Geautomatiseerde logging met context tracking
-- Performance optimalisaties met metrics
-- Immutable state management
-- Async operation cancellation support
-- Typed event system met rich payloads
-- Error recovery patterns per domain
+### /molecules Implementation
+```typescript
+// Repository Pattern
+@Injectable()
+export class TaskRepository {
+  constructor(
+    @InjectConnection() private db: Connection,
+    @Inject(CACHE_MANAGER) private cache: Cache
+  ) {}
 
-### State Management
-- Immutable update patterns
-- Event sourcing ready architecture
-- Optimistic updates met conflict resolution
-- Distributed state handling
-- Process checkpointing
+  async findById(id: string): Promise<TaskEntity> {
+    return this.cache.wrap(
+      `task:${id}`,
+      () => this.db.findOne(TaskEntity, id)
+    );
+  }
+}
 
-### Error Handling
-- Domain-specific error types
-- Structured recovery flows
-- Circuit breakers voor externe services
-- Rate limiting per resource
-- Retry strategies met backoff
+// Service Pattern
+@Injectable()
+export class TaskService {
+  constructor(
+    private repo: TaskRepository,
+    private events: EventBus
+  ) {}
 
+  async assignTask(taskId: string, userId: string): Promise<void> {
+    // Implementation
+  }
+}
+```
+
+### /organisms Implementation
+```typescript
+// Feature Pattern
+@Feature()
+export class TaskManagementFeature {
+  constructor(
+    private taskService: TaskService,
+    private notificationService: NotificationService
+  ) {}
+
+  async createTask(data: CreateTaskDto): Promise<Task> {
+    // Implementation
+  }
+}
+
+// Workflow Pattern
+@Workflow()
+export class TaskAssignmentWorkflow {
+  constructor(
+    private taskFeature: TaskManagementFeature,
+    private roleService: RoleService
+  ) {}
+
+  async execute(workflowData: TaskAssignmentData): Promise<void> {
+    // Implementation
+  }
+}
+```
 
 ## Development Environment
 
 ### Required Tools
 - VS Code + Extensions
-- Node.js v18.x
-- Docker Desktop
-- pnpm v8.x
+  * ESLint
+  * Prettier
+  * TypeScript
+  * Jest Runner
+  * REST Client
+
+- Development Tools
+  * Node.js v18.x
+  * pnpm v8.x
+  * Docker Desktop
+  * Git v2.x
 
 ### Local Setup
-- Docker containers
-- Development database
-- Mock Discord server
-- Test environment
+1. Database
+   ```bash
+   docker-compose up -d postgres redis rabbitmq
+   ```
 
-### Testing Framework
-- Jest configuratie:
-  - Coverage thresholds: 90% (statements, branches, functions, lines)
-  - Test matching: **/__tests__/**/*.test.ts
-  - Typescript transformatie via ts-jest
-  - Path aliases voor @/ imports
+2. Environment Variables
+   ```env
+   NODE_ENV=development
+   DB_HOST=localhost
+   REDIS_URL=redis://localhost
+   RABBITMQ_URL=amqp://localhost
+   ```
 
-#### Current Test Coverage Status
-- Overall dekking (significant onder target):
-  - Statements: 4.96% (target: 90%)
-  - Branches: 3.16% (target: 90%)
-  - Functions: 4.45% (target: 90%)
-  - Lines: 4.95% (target: 90%)
+3. Development Scripts
+   ```json
+   {
+     "dev": "ts-node-dev --respawn src/index.ts",
+     "test": "jest --coverage",
+     "lint": "eslint . --ext .ts",
+     "build": "tsc -p tsconfig.build.json"
+   }
+   ```
 
-#### Test Suites Overview
-- Totaal: 18 test suites
-  - Geslaagd: 1 suite
-  - Gefaald: 17 suites (database initialisatie issues)
-  - Belangrijkste problemen:
-    * Database service initialisatie failures
-    * Integration test stabiliteit issues
-    * Mock implementaties onvolledig
-    * Performance monitoring incompleet
+### Testing Strategy
+1. Unit Tests
+   - Component isolation
+   - Mocked dependencies
+   - 90% coverage target
 
-#### Mock Strategieën
-- Repository mocking voor database operaties
-- Event bus mocking voor message handling
-- Service mocking met dependency injection
-- Redis cache mocking voor performance tests
+2. Integration Tests
+   - API endpoint testing
+   - Database operations
+   - Event handling
+   - 85% coverage target
 
-#### Test Performance Metrics
-- Benchmark scenarios:
-  * Response tijd per command type
-  * Memory gebruik per operatie
-  * Database query performance
-  * Cache effectiveness metrics
-  * Event processing throughput
-  * Rate limiting impact analyse
+3. E2E Tests
+   - Full workflows
+   - Discord integration
+   - User scenarios
+   - 75% coverage target
+
+### Monitoring Setup
+1. Metrics Collection
+   - Custom DataDog metrics
+   - Performance tracking
+   - Error monitoring
+   - Resource usage
+
+2. Logging
+   - Structured JSON logs
+   - Log levels
+   - Context correlation
+   - Performance traces
+
+3. Alerts
+   - Error rate thresholds
+   - Performance degradation
+   - Resource exhaustion
+   - Service health

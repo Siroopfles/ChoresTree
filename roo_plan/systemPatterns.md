@@ -1,136 +1,315 @@
-# System Patterns: ChoresTree Discord Bot
+# System Patterns: ChoresTree Discord Bot V3
 
 ---
 
-## Architectuur Patronen
+## Core Architectuur Principes
 
-### Core Architectuur Principes
-1. Atomic Design
-   - Kleine, onafhankelijke componenten
-   - Enkele verantwoordelijkheid per component
-   - Duidelijke interfaces
+### 1. Atomic Design Hiërarchie
+- Atoms: Ondeelbare basiscomponenten
+  * Entities als data containers
+  * Interfaces als contracten
+  * Validatie schemas
+  * Utility functies
 
-2. Composable Architecture
-   - Flexibele component combinaties
-   - Loose coupling
-   - High cohesion
+- Molecules: Functionele componenten
+  * Repositories voor data toegang
+  * Services voor business logic
+  * Managers voor resources
+  * Handlers voor events
+  * Factories voor objectcreatie
 
-3. Event-Driven Architecture
-   - Asynchrone communicatie
-   - Event publishing/subscribing
-   - Message queuing
+- Organisms: Feature implementaties
+  * Complete business features
+  * Workflow orchestration
+  * API controllers
+  * Externe integraties
 
-## Component Structuur
+## Platform Structuur
+```
+/platform
+├── /atoms                     # Basis bouwstenen
+│   ├── /entities             # Database entities
+│   ├── /interfaces           # Interface contracten
+│   ├── /validation           # Validatieschema's
+│   └── /utils               # Utility functies
+├── /molecules                # Complexere componenten
+│   ├── /repositories        # Data access layer
+│   ├── /services            # Business logic
+│   ├── /managers            # Resource managers
+│   ├── /handlers            # Event handlers
+│   └── /factories           # Object factories
+├── /organisms               # Feature implementaties
+│   ├── /features            # Business features
+│   ├── /workflows           # Complexe workflows
+│   ├── /controllers         # API controllers
+│   └── /integrations        # Externe integraties
+├── /api                     # API communicatie
+│   ├── /rest               # REST endpoints
+│   ├── /graphql            # GraphQL schema's
+│   └── /websockets         # WebSocket handlers
+├── /events                  # Event architectuur
+│   ├── /publishers         # Event publishers
+│   ├── /subscribers        # Event subscribers
+│   ├── /schemas            # Event schemas
+│   └── eventBus.ts         # Event bus implementatie
+├── /role-service           # Discord rol beheer
+│   ├── /sync              # Discord synchronisatie
+│   └── /managers          # Rollenbeheer
+├── /core                   # Core services
+│   ├── /cache             # Caching systeem
+│   ├── /database          # Database connectie
+│   ├── /events            # Event systeem
+│   └── /monitoring        # Health monitoring
+├── /test                   # Test suites
+│   ├── /unit              # Unit tests
+│   ├── /integration       # Integratietests
+│   └── /e2e               # End-to-end tests
+└── README.md
+```
 
-### Core Components
-1. Discord Interface Layer
-   - Command Handler
-   - Event Listener
-   - Message Formatter
+## Architecturale Regels
 
-2. Task Management Core
-   - Task Repository
-   - Assignment Manager
-   - Status Controller
+### 1. Consistente Naamgeving
+- Semantische naamgeving die functie beschrijft
+- camelCase voor bestands- en mapnamen
+- README.md in hoofdletters
+- Gerelateerde componenten delen prefix (TaskEntity, ITask, TaskService)
 
-3. Notification Engine
-   - Reminder Scheduler
-   - Notification Dispatcher
-   - Template Manager
+### 2. Interface Definities
+- Interfaces in /atoms/interfaces
+- Duidelijke documentatie per interface
+- Focus op communicatie tussen modules
 
-4. Configuration System
-   - Settings Repository
-   - Permission Manager
-   - Server Config Handler
+### 3. Mappenstructuur Analyse
+Analyse moet gebeuren in deze volgorde:
+1. /atoms: Basis bouwstenen eerst begrijpen
+2. /molecules: Hoe atoms worden gecombineerd
+3. /organisms: Hoe features worden gebouwd
+4. Overige mappen voor specifieke functionaliteit
 
-## Implementatie Patronen
+### 4. Ontwikkelregels
+- Begin bij atoms, bouw omhoog naar complexere componenten
+- Hogere lagen mogen alleen afhangen van lagere lagen
+- Documentatie in README.md per map
+- Zoek naar herhalende patterns
+- Volledige test coverage vereist
 
-### Code Standaarden
-- TypeScript voor type-safety
-- Async/await voor asynchrone operaties
-- Interface-first design
-- Dependency injection
+### 5. Event-Driven Architectuur
+- Centrale event bus via eventBus.ts
+- Typed events met schema validatie
+- Publisher/Subscriber pattern
+- Asynchrone event verwerking
 
-### Testing Patterns
-- Unit tests per component
-- Integration tests voor workflows
-- Mock interfaces voor externe services
-- End-to-end test scenarios
+## V2 Core Patterns
 
-### Error Handling
-- Error types per domein
-- Graceful degradation
-- Gestructureerde logging
-- Recovery strategieën
+### 1. Caching Patterns
+```typescript
+// Cache Provider Pattern
+interface ICacheProvider {
+  get<T>(key: string): Promise<T | null>;
+  set<T>(key: string, value: T, ttl?: number): Promise<void>;
+  invalidate(key: string): Promise<void>;
+}
+
+// Cache Strategy Pattern
+class CascadeStrategy implements ICacheStrategy {
+  constructor(private providers: ICacheProvider[]) {}
+  async get<T>(key: string): Promise<T | null>;
+  async set<T>(key: string, value: T): Promise<void>;
+}
+
+// Cache Decorator Pattern
+@Cacheable('tasks', 300)
+async getTasks(): Promise<Task[]>;
+```
+
+### 2. Event System Patterns
+```typescript
+// Event Handler Pattern
+@EventHandler()
+class TaskEventHandler {
+  @EventSubscriber('TaskCreated')
+  async onTaskCreated(event: TaskCreatedEvent): Promise<void>;
+}
+
+// Event Monitoring Pattern
+class EventMetricsCollector {
+  recordEventProcessing(eventType: string, duration: number): void;
+  recordEventFailure(eventType: string, error: Error): void;
+}
+```
+
+### 3. Monitoring Patterns
+```typescript
+// Health Check Pattern
+interface HealthCheck {
+  check(): Promise<HealthStatus>;
+  getName(): string;
+}
+
+// Metrics Collection Pattern
+class DatabaseMetrics {
+  recordQueryExecution(query: string, duration: number): void;
+  recordConnectionPoolStatus(active: number, idle: number): void;
+}
+```
+
+## Implementatie Patterns
+
+### 1. Data Layer Patterns
+```typescript
+// Entity Pattern (Atom)
+interface ITaskEntity {
+  id: string;
+  title: string;
+  status: TaskStatus;
+}
+
+// Repository Pattern (Molecule)
+interface ITaskRepository {
+  findById(id: string): Promise<ITaskEntity>;
+  save(task: ITaskEntity): Promise<void>;
+}
+
+// Service Pattern (Molecule)
+interface ITaskService {
+  assignTask(taskId: string, userId: string): Promise<void>;
+  completeTask(taskId: string): Promise<void>;
+}
+```
+
+### 2. Event Handling Patterns
+```typescript
+// Event Schema (Atom)
+interface TaskCreatedEvent {
+  taskId: string;
+  timestamp: Date;
+}
+
+// Publisher (Events layer)
+class TaskEventPublisher {
+  publish(event: TaskCreatedEvent): Promise<void>;
+}
+
+// Subscriber (Events layer)
+class NotificationSubscriber {
+  handleTaskCreated(event: TaskCreatedEvent): Promise<void>;
+}
+```
+
+### 3. API Layer Patterns
+```typescript
+// REST Controller (API layer)
+class TaskController {
+  createTask(req: Request, res: Response): Promise<void>;
+  getTask(req: Request, res: Response): Promise<void>;
+}
+
+// GraphQL Resolver (API layer)
+const taskResolver = {
+  Query: {
+    task: (id: string) => Promise<ITaskEntity>;
+  }
+};
+
+// WebSocket Handler (API layer)
+class TaskWebSocketHandler {
+  handleStatusUpdate(update: TaskUpdate): void;
+}
+```
 
 ## Integratie Patterns
 
-### Inter-Component Communicatie
-- Event bus voor loose coupling
-- Command pattern voor acties
-- Observer pattern voor updates
-- Repository pattern voor data access
+### 1. Cross-Cutting Concerns
+- Logging Framework
+  * Gestructureerde logging
+  * Context tracking
+  * Performance metrics
 
-### Externe Integraties
-- Adapter pattern voor Discord API
-- Gateway pattern voor database
-- Factory pattern voor notificaties
-- Strategy pattern voor configuratie
+- Error Handling
+  * Domain-specific errors
+  * Error recovery flows
+  * Retry strategies
 
-## V2 Implementatie
+- Caching Strategy
+  * Multi-level caching
+  * Cache invalidation
+  * Distributed caching
 
-### Atomic Design Structuur
-1. Atoms Layer
-   - Type definitions en interfaces
-   - Entity models
-   - Validatie schemas
-   - Basis events
+### 2. Testing Patterns
+```typescript
+// Unit Test Pattern
+describe('TaskService', () => {
+  it('should assign task', async () => {
+    // Arrange
+    const taskService = new TaskService(mockRepo);
+    // Act & Assert
+  });
+});
 
-2. Molecules Layer
-   - Domain services (TaskService, NotificationService)
-   - Repositories met caching
-   - Command handlers
-   - Event listeners
+// Integration Test Pattern
+describe('TaskWorkflow', () => {
+  it('should complete workflow', async () => {
+    // Setup
+    const workflow = new TaskWorkflow(deps);
+    // Execute & Verify
+  });
+});
+```
 
-3. Organisms Layer
-   - Business workflows
-   - Process orchestrators
-   - Cross-domain integraties
-   - System flows
+### 3. Security Patterns
+- Authentication Flow
+  * Discord OAuth2
+  * Token management
+  * Permission validation
 
-### Design Pattern Toepassing
-1. Repository Pattern
-   - Generic base repository
-   - Type-safe queries
-   - Caching decorators
-   - Transaction support
+- Authorization
+  * Role-based access
+  * Resource ownership
+  * Action validation
 
-2. Event-Driven Architecture
-    - Typed event bus met strict payloads en validatie
-    - Domain-specific event handlers met retry policies
-    - Event sourcing met recovery flows en rollback
-    - Async processing met sophisticated retry strategies
-    - Event persistence met dead letter queuing
-    - Monitoring en metrics per event type
+## Best Practices
 
-3. Service Layer Pattern
-   - Domain-driven services
-   - Interface segregation
-   - Dependency injection
-   - Business logic isolatie
+### 1. Code Organization
+- Semantic bestandsnamen
+- Feature-based grouping
+- Duidelijke mapstructuur
+- Consistent importeren
 
-4. Factory & Builder Patterns
-   - Command factories
-   - Entity builders
-   - Service providers
-   - Configuration builders
+### 2. Type Safety
+- Strict TypeScript mode
+- Exhaustive type checking
+- Generics waar nodig
+- Type guards gebruiken
 
-### Cross-Cutting Concerns
-- Gestandaardiseerde error handling met domain-specific recovery patterns
-- Uitgebreide logging met gestructureerde context tracking
-- Performance monitoring met gedetailleerde metrics en alerts
-- Sophisticated caching met pattern-based invalidation
-- Security controls met rate limiting en circuit breakers
-- State management met immutability en conflict resolution
-- Asynchrone operaties met cancellation support en timeout handling
-- Breaking changes management met version compatibility
+### 3. Error Handling
+- Custom error types
+- Error boundaries
+- Graceful degradation
+- Error logging
+
+### 4. Performance
+- Lazy loading
+- Caching strategies
+- Query optimalisatie
+- Resource pooling
+
+## Monitoring & Observability
+
+### 1. Metrics Collection
+- Performance metrics
+- Error rates
+- Resource usage
+- User interactions
+
+### 2. Health Checks
+- Service health
+- Database connectivity
+- External services
+- Cache status
+
+### 3. Alerting
+- Error thresholds
+- Performance degradation
+- Resource exhaustion
+- Service disruption
