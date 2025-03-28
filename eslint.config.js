@@ -18,8 +18,19 @@ module.exports = [
     },
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/no-unused-vars': 'error',
+      '@typescript-eslint/no-unused-vars': ['error', { 
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_'
+      }],
       'no-console': ['error', { allow: ['warn', 'error'] }],
     },
   },
+  // Extra strikte regels voor productie code
+  {
+    files: ['**/src/**/*.ts', '**/platform/**/*.ts'],
+    ignores: ['**/__tests__/**'],
+    rules: {
+      '@typescript-eslint/no-unused-vars': 'error', // Geen underscore prefix in productie code
+    }
+  }
 ];

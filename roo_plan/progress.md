@@ -30,10 +30,10 @@ Status assignment without complete file verification is STRICTLY PROHIBITED
   * [ ] Development tooling
 
 ### 2. Atoms Layer [ ] - V2 Reference Components:
-- atomic/atoms/database/entities
-- atomic/atoms/notification
-- atomic/atoms/task
-- atomic/atoms/config
+- v2/atomic/atoms/database/entities
+- v2/atomic/atoms/notification
+- v2/atomic/atoms/task
+- v2/atomic/atoms/config
 - [ ] /entities
   * [ ] Task entity definitie
   * [ ] Notification entity definitie
@@ -58,9 +58,9 @@ Status assignment without complete file verification is STRICTLY PROHIBITED
   * [ ] Testing helpers
 
 ### 3. Molecules Layer [ ] - V2 Reference Components:
-- atomic/molecules/repositories
-- atomic/molecules/services
-- atomic/molecules/common
+- v2/atomic/molecules/repositories
+- v2/atomic/molecules/services
+- v2/atomic/molecules/common
 - [ ] /repositories
   * [ ] Base repository pattern
   * [ ] Task repository
@@ -91,9 +91,9 @@ Status assignment without complete file verification is STRICTLY PROHIBITED
   * [ ] Test data generators
 
 ### 4. Organisms Layer [ ] - V2 Reference Components:
-- atomic/organisms/discord
-- atomic/organisms/notification
-- atomic/organisms/task
+- v2/atomic/organisms/discord
+- v2/atomic/organisms/notification
+- v2/atomic/organisms/task
 - [ ] /features
   * [ ] Task management module
   * [ ] Notification systeem
@@ -118,9 +118,9 @@ Status assignment without complete file verification is STRICTLY PROHIBITED
   * [ ] Monitoring hooks
 
 ### 5. Platform Services [ ] - V2 Reference Components:
-- core/cache met providers en strategies
-- core/events met decorators
-- core/monitoring met metrics
+- v2/core/cache met providers en strategies
+- v2/core/events met decorators
+- v2/core/monitoring met metrics
 
 #### /api Layer
 - [ ] /rest

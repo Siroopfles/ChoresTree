@@ -93,6 +93,7 @@ Analyse moet gebeuren in deze volgorde:
 - Documentatie in README.md per map
 - Zoek naar herhalende patterns
 - Volledige test coverage vereist
+- Houd Platform Structuur up to date
 
 ### 5. Event-Driven Architectuur
 - Centrale event bus via eventBus.ts
