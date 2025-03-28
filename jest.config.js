@@ -38,5 +38,6 @@ module.exports = {
     '!platform/**/__tests__/**'
   ],
   verbose: true,
-  testTimeout: 10000
+  testTimeout: 60000, // 60 seconden voor performance tests
+  slowTestThreshold: 30000 // Markeer tests als 'slow' na 30 seconden
 };

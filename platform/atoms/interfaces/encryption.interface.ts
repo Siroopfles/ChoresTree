@@ -6,21 +6,35 @@ export interface IEncryptionProvider {
   /**
    * Encrypt een waarde
    * @param value De waarde om te encrypten
-   * @param key De encryptie sleutel (optioneel, gebruikt default key als niet opgegeven)
    */
-  encrypt(value: string, key?: string): Promise<string>;
+  encrypt(value: string): Promise<IEncryptionResult>;
 
   /**
    * Decrypt een waarde
    * @param encrypted De geëncrypte waarde
-   * @param key De decryptie sleutel (optioneel, gebruikt default key als niet opgegeven)
    */
-  decrypt(encrypted: string, key?: string): Promise<string>;
+  decrypt(encrypted: IEncryptionResult): Promise<string>;
 
   /**
    * Genereer een nieuwe encryptie sleutel
    */
   generateKey(): Promise<string>;
+}
+
+/**
+ * Interface voor geëncrypte data
+ */
+export interface IEncryptionResult {
+  /** De geëncrypte content */
+  content: string;
+  /** De initialization vector */
+  iv: string;
+  /** De authentication tag */
+  tag: string;
+  /** ID van de gebruikte sleutel */
+  keyId: string;
+  /** Het gebruikte algoritme */
+  algorithm: string;
 }
 
 /**
@@ -37,6 +51,7 @@ export interface IEncryptionConfig {
   keyRotation?: {
     enabled: boolean;
     intervalDays: number;
+    gracePeriodDays: number;
   };
 }
 
