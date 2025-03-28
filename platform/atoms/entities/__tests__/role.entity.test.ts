@@ -14,7 +14,7 @@ describe('RoleEntity', () => {
     role.metadata = {
       color: '#FF0000',
       position: 1,
-      mentionable: true
+      mentionable: true,
     };
   });
 
@@ -30,10 +30,10 @@ describe('RoleEntity', () => {
   it('should validate required fields', async () => {
     const emptyRole = new RoleEntity();
     const errors = await validate(emptyRole);
-    
+
     expect(errors).toHaveLength(4); // name, permissions, discordRoleId, serverId
-    expect(errors.map(error => error.property)).toEqual(
-      expect.arrayContaining(['name', 'permissions', 'discordRoleId', 'serverId'])
+    expect(errors.map((error) => error.property)).toEqual(
+      expect.arrayContaining(['name', 'permissions', 'discordRoleId', 'serverId']),
     );
   });
 
@@ -57,7 +57,7 @@ describe('RoleEntity', () => {
     it('should have taskRoles relation', () => {
       const role = new RoleEntity();
       const taskRole = new TaskRolesEntity();
-      
+
       role.taskRoles = [taskRole];
       expect(role.taskRoles).toHaveLength(1);
       expect(role.taskRoles[0]).toBe(taskRole);
@@ -74,7 +74,7 @@ describe('RoleEntity', () => {
       color: '#FF0000',
       position: 1,
       mentionable: true,
-      managed: false
+      managed: false,
     };
     const errors = await validate(role);
     expect(errors).toHaveLength(0);
@@ -90,7 +90,7 @@ describe('RoleEntity', () => {
   it('should validate name is not empty', async () => {
     role.name = '';
     const errors = await validate(role);
-    
+
     expect(errors).toHaveLength(1);
     expect(errors[0].property).toBe('name');
     expect(errors[0].constraints).toHaveProperty('isNotEmpty');
@@ -99,7 +99,7 @@ describe('RoleEntity', () => {
   it('should validate serverId is not empty', async () => {
     role.serverId = '';
     const errors = await validate(role);
-    
+
     expect(errors).toHaveLength(1);
     expect(errors[0].property).toBe('serverId');
     expect(errors[0].constraints).toHaveProperty('isNotEmpty');
@@ -108,7 +108,7 @@ describe('RoleEntity', () => {
   it('should validate discordRoleId is not empty', async () => {
     role.discordRoleId = '';
     const errors = await validate(role);
-    
+
     expect(errors).toHaveLength(1);
     expect(errors[0].property).toBe('discordRoleId');
     expect(errors[0].constraints).toHaveProperty('isNotEmpty');

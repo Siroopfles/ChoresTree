@@ -5,7 +5,7 @@ import {
   StateTransition,
   StateMachineConfig,
   StateTransitionEvent,
-  TransitionValidationError
+  TransitionValidationError,
 } from '../../atoms/interfaces/state-transition.interface';
 
 /**
@@ -16,7 +16,11 @@ export class TaskStateMachine implements IStateMachine<TaskStatus> {
   public readonly eventEmitter: EventEmitter;
   private readonly transitions: StateTransition<TaskStatus>[];
   private readonly onTransitionSuccess?: (event: StateTransitionEvent<TaskStatus>) => Promise<void>;
-  private readonly onTransitionError?: (error: Error, from: TaskStatus, to: TaskStatus) => Promise<void>;
+  private readonly onTransitionError?: (
+    error: Error,
+    from: TaskStatus,
+    to: TaskStatus,
+  ) => Promise<void>;
 
   constructor(config: StateMachineConfig<TaskStatus>) {
     this.currentState = config.initialState;
@@ -54,12 +58,12 @@ export class TaskStateMachine implements IStateMachine<TaskStatus> {
    */
   async transition(to: TaskStatus, metadata?: Record<string, unknown>): Promise<void> {
     const transition = this.findTransition(to);
-    
+
     if (!transition) {
       throw new TransitionValidationError(
         this.currentState,
         to,
-        `Invalid transition from ${this.currentState} to ${to}`
+        `Invalid transition from ${this.currentState} to ${to}`,
       );
     }
 
@@ -70,7 +74,7 @@ export class TaskStateMachine implements IStateMachine<TaskStatus> {
         throw new TransitionValidationError(
           this.currentState,
           to,
-          `Transition validation failed from ${this.currentState} to ${to}`
+          `Transition validation failed from ${this.currentState} to ${to}`,
         );
       }
 
@@ -93,7 +97,7 @@ export class TaskStateMachine implements IStateMachine<TaskStatus> {
         from,
         to,
         timestamp: new Date(),
-        metadata
+        metadata,
       };
 
       // Emit events
@@ -105,11 +109,11 @@ export class TaskStateMachine implements IStateMachine<TaskStatus> {
       // Error handling
       const typedError = error instanceof Error ? error : new Error(String(error));
       this.eventEmitter.emit('transitionError', typedError, this.currentState, to);
-      
+
       if (this.onTransitionError) {
         await this.onTransitionError(typedError, this.currentState, to);
       }
-      
+
       throw typedError;
     }
   }
@@ -118,10 +122,15 @@ export class TaskStateMachine implements IStateMachine<TaskStatus> {
    * Event listener registreren
    */
   on(event: 'transitionSuccess', listener: (event: StateTransitionEvent<TaskStatus>) => void): void;
-  on(event: 'transitionError', listener: (error: Error, from: TaskStatus, to: TaskStatus) => void): void;
+  on(
+    event: 'transitionError',
+    listener: (error: Error, from: TaskStatus, to: TaskStatus) => void,
+  ): void;
   on(
     event: 'transitionSuccess' | 'transitionError',
-    listener: ((event: StateTransitionEvent<TaskStatus>) => void) | ((error: Error, from: TaskStatus, to: TaskStatus) => void)
+    listener:
+      | ((event: StateTransitionEvent<TaskStatus>) => void)
+      | ((error: Error, from: TaskStatus, to: TaskStatus) => void),
   ): void {
     this.eventEmitter.on(event, listener);
   }
@@ -130,9 +139,7 @@ export class TaskStateMachine implements IStateMachine<TaskStatus> {
    * Helper om een transitie te vinden
    */
   private findTransition(to: TaskStatus): StateTransition<TaskStatus> | undefined {
-    return this.transitions.find(
-      t => t.from === this.currentState && t.to === to
-    );
+    return this.transitions.find((t) => t.from === this.currentState && t.to === to);
   }
 }
 
@@ -141,10 +148,10 @@ export class TaskStateMachine implements IStateMachine<TaskStatus> {
  */
 export function createTaskStateMachine(
   initialState: TaskStatus = TaskStatus.TODO,
-  transitions: StateTransition<TaskStatus>[] = []
+  transitions: StateTransition<TaskStatus>[] = [],
 ): TaskStateMachine {
   return new TaskStateMachine({
     initialState,
-    transitions
+    transitions,
   });
 }

@@ -1,14 +1,18 @@
 {
-  "extends": "./tsconfig.json",
+  "extends": "./tsconfig.platform.json",
   "compilerOptions": {
     "types": ["jest", "node"],
     "esModuleInterop": true,
     "typeRoots": [
-      "./node_modules/@types",
-      "./src/v2/test/jest/types"
+      "./node_modules/@types"
     ],
     "paths": {
+      "@platform/*": ["platform/*"],
       "@jest/expect": ["./node_modules/@jest/expect"]
     }
-  }
+  },
+  "include": [
+    "platform/**/*.test.ts",
+    "platform/**/__tests__/**/*"
+  ]
 }

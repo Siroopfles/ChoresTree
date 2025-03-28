@@ -234,6 +234,6 @@ export class RoleEntity extends BaseEntity {
    * - Bi-directionele relatie via TaskRoles
    * - Inclusief metadata per taak-rol koppeling
    */
-  @OneToMany(() => TaskRolesEntity, taskRole => taskRole.role)
+  @OneToMany(() => TaskRolesEntity, (taskRole) => taskRole.role)
   taskRoles?: TaskRolesEntity[];
 }

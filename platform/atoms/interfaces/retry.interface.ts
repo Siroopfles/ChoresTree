@@ -4,15 +4,15 @@
 export interface RetryOptions {
   /** Maximum number of retry attempts */
   maxAttempts: number;
-  
+
   /** Initial backoff delay in milliseconds */
   backoffMs: number;
-  
+
   /** Maximum backoff delay in milliseconds */
   maxBackoffMs: number;
-  
+
   /** Array of error types that should trigger a retry */
-  retryableErrors: Array<{ new(message?: string): Error }>;
+  retryableErrors: Array<{ new (message?: string): Error }>;
 }
 
 /**

@@ -24,21 +24,21 @@ describe('Validation Interface Type Tests', () => {
         name: entity.name,
         value: entity.value,
         optional: entity.optional,
-        createdAt: entity.createdAt
+        createdAt: entity.createdAt,
       };
-      
+
       return [];
     }
 
     async validateFields(data: Partial<TestEntity>): Promise<ValidationError[]> {
       // Type check: alle velden zijn optional
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const fields = {  
+      const fields = {
         name: data.name,
         value: data.value,
-        optional: data.optional
+        optional: data.optional,
       };
-      
+
       return [];
     }
 
@@ -47,7 +47,7 @@ describe('Validation Interface Type Tests', () => {
       // @ts-expect-error - Should not allow system fields
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const error1 = data.id;
-      
+
       // @ts-expect-error - Should not allow system fields
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const error2 = data.createdAt;
@@ -62,8 +62,8 @@ describe('Validation Interface Type Tests', () => {
       type: 'object',
       properties: {
         name: { type: 'string' },
-        value: { type: 'number' }
-      }
+        value: { type: 'number' },
+      },
     };
 
     async validateEntity(_entity: TestEntity): Promise<ValidationError[]> {
@@ -88,10 +88,12 @@ describe('Validation Interface Type Tests', () => {
     async validate(entity: TestEntity): Promise<ValidationError[]> {
       // Custom business rules validatie
       if (entity.value < 0) {
-        return [{
-          field: 'value',
-          message: 'Value must be positive'
-        }];
+        return [
+          {
+            field: 'value',
+            message: 'Value must be positive',
+          },
+        ];
       }
       return [];
     }
@@ -102,19 +104,19 @@ describe('Validation Interface Type Tests', () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const validError: ValidationError = {
       field: 'name',
-      message: 'Required field'
+      message: 'Required field',
     };
 
     // @ts-expect-error - Should require field
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const errorWithoutField: ValidationError = {
-      message: 'Missing field'
+      message: 'Missing field',
     };
 
     // @ts-expect-error - Should require message
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const errorWithoutMessage: ValidationError = {
-      field: 'name'
+      field: 'name',
     };
   });
 

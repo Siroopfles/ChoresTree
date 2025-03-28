@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, VersionColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  VersionColumn,
+} from 'typeorm';
 import { IEntity } from '../interfaces/entity.interface';
 
 /**
@@ -43,11 +49,13 @@ export abstract class EncryptedEntity extends BaseEntity {
    * Flag die aangeeft dat deze entity encrypted velden heeft
    * Gebruikt door repositories voor encryptie handling
    */
-  protected readonly isEncrypted: boolean = true;
-  
+  public readonly isEncrypted: boolean = true;
+
   /**
    * Lijst van velden die geëncrypt moeten worden
    * Moet worden overschreven door child classes
    */
-  protected abstract readonly encryptedFields: string[];
+  public abstract readonly encryptedFields: string[];
+
+  [key: string]: any; // Index signature voor dynamic property access
 }

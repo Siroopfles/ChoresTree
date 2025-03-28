@@ -6,7 +6,7 @@ describe('DateUtils', () => {
     DateUtils.configure({
       defaultTimezone: 'Europe/Amsterdam',
       defaultLocale: 'nl-NL',
-      cacheSize: 50
+      cacheSize: 50,
     });
   });
 
@@ -14,14 +14,14 @@ describe('DateUtils', () => {
     it('should allow configuration updates', () => {
       const config: Partial<IDateConfig> = {
         defaultTimezone: 'America/New_York',
-        defaultLocale: 'en-US'
+        defaultLocale: 'en-US',
       };
-      
+
       DateUtils.configure(config);
-      
+
       const date = new Date('2025-01-01T12:00:00Z');
       const result = DateUtils.format(date, { format: 'short' });
-      
+
       // Amerikaans formaat (M/D/YYYY)
       expect(result).toMatch(/1\/1\/2025/);
     });
@@ -29,7 +29,7 @@ describe('DateUtils', () => {
     it('should throw error when locale/timezone missing', () => {
       DateUtils.configure({
         defaultTimezone: undefined,
-        defaultLocale: undefined
+        defaultLocale: undefined,
       });
 
       const date = new Date();
@@ -46,7 +46,7 @@ describe('DateUtils', () => {
       const options: IDateFormat = {
         format: 'date,time',
         locale: 'nl-NL',
-        timezone: 'Europe/Amsterdam'
+        timezone: 'Europe/Amsterdam',
       };
 
       const result = DateUtils.format(testDate, options);
@@ -60,14 +60,11 @@ describe('DateUtils', () => {
     });
 
     it('should handle different format options', () => {
-      expect(DateUtils.format(testDate, { format: 'short' }))
-        .toMatch(/01-01-2025/);
-      
-      expect(DateUtils.format(testDate, { format: 'long' }))
-        .toMatch(/1 januari 2025/);
-      
-      expect(DateUtils.format(testDate, { format: 'date,time' }))
-        .toMatch(/13:00/);
+      expect(DateUtils.format(testDate, { format: 'short' })).toMatch(/01-01-2025/);
+
+      expect(DateUtils.format(testDate, { format: 'long' })).toMatch(/1 januari 2025/);
+
+      expect(DateUtils.format(testDate, { format: 'date,time' })).toMatch(/13:00/);
     });
 
     // Performance test
@@ -75,20 +72,20 @@ describe('DateUtils', () => {
       const options: IDateFormat = {
         format: 'date,time',
         locale: 'nl-NL',
-        timezone: 'Europe/Amsterdam'
+        timezone: 'Europe/Amsterdam',
       };
 
       const iterations = 1000;
       const start = performance.now();
-      
+
       // Warm-up cache
       DateUtils.format(testDate, options);
-      
+
       // Test cached performance
       for (let i = 0; i < iterations; i++) {
         DateUtils.format(testDate, options);
       }
-      
+
       const avgTime = (performance.now() - start) / iterations;
       expect(avgTime).toBeLessThan(0.1); // Gemiddeld onder 0.1ms per format
     });
@@ -99,10 +96,10 @@ describe('DateUtils', () => {
       const validDates = [
         new Date(),
         '2025-01-01',
-        1735689600000 // 2025-01-01 timestamp
+        1735689600000, // 2025-01-01 timestamp
       ];
 
-      validDates.forEach(date => {
+      validDates.forEach((date) => {
         expect(DateUtils.isValidDate(date)).toBe(true);
       });
     });
@@ -112,10 +109,10 @@ describe('DateUtils', () => {
         'not-a-date',
         '2025-13-01', // invalid month
         'undefined',
-        null as unknown as string
+        null as unknown as string,
       ];
 
-      invalidDates.forEach(date => {
+      invalidDates.forEach((date) => {
         expect(DateUtils.isValidDate(date)).toBe(false);
       });
     });
@@ -175,8 +172,8 @@ describe('DateUtils', () => {
 
     it('should handle timezone differences', () => {
       const start = new Date('2025-01-01T23:00:00Z'); // Late night UTC
-      const end = new Date('2025-01-02T01:00:00Z');   // Early morning UTC
-      
+      const end = new Date('2025-01-02T01:00:00Z'); // Early morning UTC
+
       expect(DateUtils.daysBetween(start, end)).toBe(1);
     });
   });

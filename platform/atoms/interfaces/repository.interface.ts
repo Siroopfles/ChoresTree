@@ -39,13 +39,13 @@ export interface IEncryptedRepository<T extends IEntity> extends IBaseRepository
    * De encryptie sleutel voor deze repository
    */
   readonly encryptionKey: string;
-  
+
   /**
    * Encrypt een veld
    * @param value De waarde om te encrypten
    */
   encrypt(value: string): Promise<string>;
-  
+
   /**
    * Decrypt een veld
    * @param value De encrypted waarde

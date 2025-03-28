@@ -5,19 +5,19 @@ import { z } from 'zod';
  */
 export const baseSchema = z.object({
   id: z.string().uuid({
-    message: 'ID moet een geldig UUID zijn'
+    message: 'ID moet een geldig UUID zijn',
   }),
   createdAt: z.date({
     required_error: 'Aanmaakdatum is verplicht',
-    invalid_type_error: 'Aanmaakdatum moet een geldige datum zijn'
+    invalid_type_error: 'Aanmaakdatum moet een geldige datum zijn',
   }),
   updatedAt: z.date({
-    required_error: 'Wijzigingsdatum is verplicht', 
-    invalid_type_error: 'Wijzigingsdatum moet een geldige datum zijn'
+    required_error: 'Wijzigingsdatum is verplicht',
+    invalid_type_error: 'Wijzigingsdatum moet een geldige datum zijn',
   }),
   version: z.number().int().positive({
-    message: 'Versie moet een positief geheel getal zijn'
-  })
+    message: 'Versie moet een positief geheel getal zijn',
+  }),
 });
 
 /**
@@ -48,9 +48,9 @@ export async function validateSchema<T>(schema: z.ZodSchema<T>, data: unknown): 
   } catch (error) {
     if (error instanceof z.ZodError) {
       // Formateer errors naar Nederlandse messages
-      const errors = error.errors.map(err => ({
+      const errors = error.errors.map((err) => ({
         field: err.path.join('.'),
-        message: err.message
+        message: err.message,
       }));
       throw new Error(`Validatie errors: ${JSON.stringify(errors)}`);
     }

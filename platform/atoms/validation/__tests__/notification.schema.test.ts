@@ -1,6 +1,12 @@
 import { z } from 'zod';
 import { NotificationStatus, NotificationType } from '../../entities/notification.entity';
-import { notificationSchema, validateNotification, createNotificationSchema, updateNotificationSchema, ValidatedNotification } from '../notification.schema';
+import {
+  notificationSchema,
+  validateNotification,
+  createNotificationSchema,
+  updateNotificationSchema,
+  ValidatedNotification,
+} from '../notification.schema';
 
 describe('Notification Schema Validation', () => {
   const validNotification: Partial<ValidatedNotification> = {
@@ -14,7 +20,7 @@ describe('Notification Schema Validation', () => {
     content: 'Test notification',
     recipientId: 'user123',
     taskId: '123e4567-e89b-12d3-a456-426614174001',
-    metadata: { key: 'value' }
+    metadata: { key: 'value' },
   };
 
   describe('Create Validation', () => {
@@ -32,7 +38,7 @@ describe('Notification Schema Validation', () => {
       const invalidData = {
         type: 'INVALID' as NotificationType,
         content: '',
-        recipientId: ''
+        recipientId: '',
       };
 
       try {
@@ -57,7 +63,7 @@ describe('Notification Schema Validation', () => {
     test('should handle invalid type error', async () => {
       const invalidData = {
         ...validCreateData,
-        type: undefined
+        type: undefined,
       };
 
       try {
@@ -73,16 +79,19 @@ describe('Notification Schema Validation', () => {
     test('should handle unknown type validation error', async () => {
       const mockSchema = createNotificationSchema.extend({
         type: z.custom((_val) => {
-          throw new z.ZodError([{
-            code: 'custom',
-            path: ['type'],
-            message: 'Type moet een geldige waarde zijn'
-          }]);
-        })
+          throw new z.ZodError([
+            {
+              code: 'custom',
+              path: ['type'],
+              message: 'Type moet een geldige waarde zijn',
+            },
+          ]);
+        }),
       });
-      
+
       const original = createNotificationSchema.parseAsync;
-      createNotificationSchema.parseAsync = mockSchema.parseAsync as typeof createNotificationSchema.parseAsync;
+      createNotificationSchema.parseAsync =
+        mockSchema.parseAsync as typeof createNotificationSchema.parseAsync;
 
       try {
         await validateNotification.create(validCreateData);
@@ -101,7 +110,7 @@ describe('Notification Schema Validation', () => {
     test('should validate valid update data', async () => {
       const validUpdateData = {
         content: 'Updated content',
-        status: NotificationStatus.READ
+        status: NotificationStatus.READ,
       };
 
       await expect(validateNotification.update(validUpdateData)).resolves.toBeDefined();
@@ -111,7 +120,7 @@ describe('Notification Schema Validation', () => {
       const invalidData = {
         status: 'INVALID' as NotificationStatus,
         priority: 10,
-        content: 'a'.repeat(2001)
+        content: 'a'.repeat(2001),
       };
 
       try {
@@ -132,7 +141,7 @@ describe('Notification Schema Validation', () => {
         { content: 'New content' },
         { status: NotificationStatus.READ },
         { priority: 5 },
-        { metadata: { newKey: 'newValue' } }
+        { metadata: { newKey: 'newValue' } },
       ];
 
       for (const update of updates) {
@@ -145,7 +154,7 @@ describe('Notification Schema Validation', () => {
     test('should validate notification type enum', async () => {
       const invalidData = {
         ...validNotification,
-        type: 'INVALID_TYPE'
+        type: 'INVALID_TYPE',
       };
 
       try {
@@ -162,7 +171,7 @@ describe('Notification Schema Validation', () => {
     test('should handle non-string type values', async () => {
       const invalidData = {
         ...validNotification,
-        type: 123
+        type: 123,
       };
 
       try {
@@ -180,7 +189,7 @@ describe('Notification Schema Validation', () => {
     test('should validate notification status enum', async () => {
       const invalidData = {
         ...validNotification,
-        status: 'INVALID_STATUS'
+        status: 'INVALID_STATUS',
       };
 
       try {
@@ -212,7 +221,7 @@ describe('Notification Schema Validation', () => {
     test('should handle non-string status values', async () => {
       const invalidData = {
         ...validNotification,
-        status: 123
+        status: 123,
       };
 
       try {
@@ -228,14 +237,16 @@ describe('Notification Schema Validation', () => {
     test('should handle unknown status validation error', async () => {
       const mockSchema = notificationSchema.extend({
         status: z.custom((_val) => {
-          throw new z.ZodError([{
-            code: 'custom',
-            path: ['status'],
-            message: 'Status moet een geldige waarde zijn'
-          }]);
-        })
+          throw new z.ZodError([
+            {
+              code: 'custom',
+              path: ['status'],
+              message: 'Status moet een geldige waarde zijn',
+            },
+          ]);
+        }),
       });
-      
+
       const original = notificationSchema.parseAsync;
       notificationSchema.parseAsync = mockSchema.parseAsync as typeof notificationSchema.parseAsync;
 
@@ -312,7 +323,7 @@ describe('Notification Schema Validation', () => {
     test('should validate priority range', async () => {
       const invalidData = {
         ...validNotification,
-        priority: 6
+        priority: 6,
       };
 
       try {
@@ -328,7 +339,7 @@ describe('Notification Schema Validation', () => {
     test('should validate content length', async () => {
       const invalidData = {
         ...validNotification,
-        content: 'a'.repeat(2001)
+        content: 'a'.repeat(2001),
       };
 
       try {
@@ -344,7 +355,7 @@ describe('Notification Schema Validation', () => {
     test('should validate taskId format', async () => {
       const invalidData = {
         ...validNotification,
-        taskId: 'invalid-uuid'
+        taskId: 'invalid-uuid',
       };
 
       try {

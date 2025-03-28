@@ -12,6 +12,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    labels:
+      com.datadoghq.ad.logs: '[{"source": "postgresql", "service": "postgres"}]'
     command: >
       postgres
       -c max_connections=100
@@ -51,47 +53,121 @@ services:
       timeout: 3s
       retries: 3
 
-  # Production Redis
-  redis:
+  # Hot Cache (Layer 1 - 50MB, 5min TTL)
+  redis_hot:
     image: redis:7-alpine
     ports:
       - "6379:6379"
     command: >
       redis-server
-      --maxmemory 500mb
+      --maxmemory 50mb
       --maxmemory-policy allkeys-lru
-      --appendonly yes
-    volumes:
-      - redis_data:/data
+      --save ""
+      --appendonly no
+    labels:
+      com.datadoghq.ad.logs: '[{"source": "redis", "service": "redis_hot"}]'
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Test Redis (No persistent storage, optimized for testing)
-  redis_test:
+  # Warm Cache (Layer 2 - 450MB, 30min TTL)
+  redis_warm:
     image: redis:7-alpine
     ports:
       - "6380:6379"
     command: >
       redis-server
-      --maxmemory 128mb
+      --maxmemory 450mb
       --maxmemory-policy allkeys-lru
       --save ""
       --appendonly no
-    tmpfs:
-      - /data
+    labels:
+      com.datadoghq.ad.logs: '[{"source": "redis", "service": "redis_warm"}]'
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Production RabbitMQ
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"   # AMQP protocol
+      - "15672:15672" # Management interface
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-rabbitmq}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-rabbitmq}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    labels:
+      com.datadoghq.ad.logs: '[{"source": "rabbitmq", "service": "rabbitmq"}]'
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: >
+      bash -c "
+        rabbitmq-server &
+        sleep 10 &&
+        rabbitmqctl set_vm_memory_high_watermark 0.7 &&
+        rabbitmqctl set_disk_free_limit 2GB &&
+        wait
+      "
+
+  # Test RabbitMQ (No persistent storage, optimized for testing)
+  rabbitmq_test:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5673:5672"   # AMQP protocol
+      - "15673:15672" # Management interface
+    environment:
+      RABBITMQ_DEFAULT_USER: ${TEST_RABBITMQ_USER:-rabbitmq_test}
+      RABBITMQ_DEFAULT_PASS: ${TEST_RABBITMQ_PASSWORD:-rabbitmq_test}
+    tmpfs:
+      - /var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
       interval: 5s
       timeout: 3s
+      retries: 3
+    command: >
+      bash -c "
+        rabbitmq-server &
+        sleep 5 &&
+        rabbitmqctl set_vm_memory_high_watermark 0.4 &&
+        rabbitmqctl set_disk_free_limit 512MB &&
+        wait
+      "
+
+  # DataDog Agent
+  datadog:
+    image: datadog/agent:latest
+    environment:
+      - DD_API_KEY=${DD_API_KEY}
+      - DD_SITE=${DD_SITE:-datadoghq.eu}
+      - DD_LOGS_ENABLED=true
+      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+      - DD_CONTAINER_EXCLUDE=image:datadog/agent
+      - DD_APM_ENABLED=true
+      # Service discovery configurations
+      - DD_ENABLE_METADATA_COLLECTION=true
+      - DD_DOCKER_LABELS_AS_TAGS=true
+      - DD_DOCKER_ENV_AS_TAGS=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    healthcheck:
+      test: ["CMD", "agent", "health"]
+      interval: 30s
+      timeout: 10s
       retries: 3
 
 volumes:
   postgres_data:
-  redis_data:
-
-networks:
-  default:
-    name: chorestree_network
+  rabbitmq_data:

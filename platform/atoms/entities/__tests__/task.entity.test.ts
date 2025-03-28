@@ -26,15 +26,19 @@ describe('TaskEntity', () => {
   });
 
   it('should have encrypted fields marked with @Encrypt decorator', () => {
-    const encryptedFields: string[] = Reflect.getMetadata('typeorm:encrypted_fields', TaskEntity) || [];
+    const encryptedFields: string[] =
+      Reflect.getMetadata('typeorm:encrypted_fields', TaskEntity) || [];
     expect(encryptedFields).toContain('title');
     expect(encryptedFields).toContain('description');
   });
 
   it('should have encryption options for encrypted fields', () => {
     const titleOptions = Reflect.getMetadata('typeorm:encrypted_fields:title', TaskEntity);
-    const descriptionOptions = Reflect.getMetadata('typeorm:encrypted_fields:description', TaskEntity);
-    
+    const descriptionOptions = Reflect.getMetadata(
+      'typeorm:encrypted_fields:description',
+      TaskEntity,
+    );
+
     expect(titleOptions).toBeDefined();
     expect(descriptionOptions).toBeDefined();
   });
@@ -43,7 +47,7 @@ describe('TaskEntity', () => {
     it('should have notifications relation', () => {
       const task = new TaskEntity();
       const notification = new NotificationEntity();
-      
+
       task.notifications = [notification];
       expect(task.notifications).toHaveLength(1);
       expect(task.notifications[0]).toBe(notification);
@@ -52,7 +56,7 @@ describe('TaskEntity', () => {
     it('should have taskRoles relation', () => {
       const task = new TaskEntity();
       const taskRole = new TaskRolesEntity();
-      
+
       task.taskRoles = [taskRole];
       expect(task.taskRoles).toHaveLength(1);
       expect(task.taskRoles[0]).toBe(taskRole);
@@ -68,7 +72,7 @@ describe('TaskEntity', () => {
   describe('validation', () => {
     it('should allow valid priority values', () => {
       const validPriorities = [1, 2, 3, 4, 5];
-      validPriorities.forEach(priority => {
+      validPriorities.forEach((priority) => {
         task.priority = priority;
         expect(task.priority).toBe(priority);
       });
@@ -76,7 +80,7 @@ describe('TaskEntity', () => {
 
     it('should allow valid status values', () => {
       const validStatuses = Object.values(TaskStatus);
-      validStatuses.forEach(status => {
+      validStatuses.forEach((status) => {
         task.status = status;
         expect(task.status).toBe(status);
       });

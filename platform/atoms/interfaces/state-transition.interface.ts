@@ -38,7 +38,7 @@ export class TransitionValidationError extends Error {
   constructor(
     public readonly from: unknown,
     public readonly to: unknown,
-    message: string
+    message: string,
   ) {
     super(message);
     this.name = 'TransitionValidationError';
@@ -61,7 +61,7 @@ export interface IStateMachine<T> {
   // Events
   on(event: 'transitionSuccess', listener: (event: StateTransitionEvent<T>) => void): void;
   on(event: 'transitionError', listener: (error: Error, from: T, to: T) => void): void;
-  
+
   // Event emitter voor type-safe event handling
   eventEmitter: EventEmitter;
 }

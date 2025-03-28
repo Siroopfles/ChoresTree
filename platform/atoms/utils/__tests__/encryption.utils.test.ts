@@ -2,7 +2,7 @@ import {
   EncryptionValidator,
   EncryptionUtils,
   DEFAULT_ENCRYPTION_CONFIG,
-  EncryptionService
+  EncryptionService,
 } from '../encryption.utils';
 import { EncryptionError, IEncryptionResult } from '../../interfaces/encryption.interface';
 
@@ -17,9 +17,8 @@ describe('Encryption Utils', () => {
 
       it('should throw on invalid key', () => {
         const invalidKeys = ['', '123', null, undefined];
-        invalidKeys.forEach(key => {
-          expect(() => EncryptionValidator.validateKey(key as string))
-            .toThrow(EncryptionError);
+        invalidKeys.forEach((key) => {
+          expect(() => EncryptionValidator.validateKey(key as string)).toThrow(EncryptionError);
         });
       });
     });
@@ -27,15 +26,15 @@ describe('Encryption Utils', () => {
     describe('validateEncryptedData', () => {
       it('should validate valid encrypted data', () => {
         const validData = 'encrypted-data';
-        expect(() => EncryptionValidator.validateEncryptedData(validData))
-          .not.toThrow();
+        expect(() => EncryptionValidator.validateEncryptedData(validData)).not.toThrow();
       });
 
       it('should throw on invalid encrypted data', () => {
         const invalidData = ['', null, undefined];
-        invalidData.forEach(data => {
-          expect(() => EncryptionValidator.validateEncryptedData(data as string))
-            .toThrow(EncryptionError);
+        invalidData.forEach((data) => {
+          expect(() => EncryptionValidator.validateEncryptedData(data as string)).toThrow(
+            EncryptionError,
+          );
         });
       });
     });
@@ -58,7 +57,7 @@ describe('Encryption Utils', () => {
           content: 'def',
           tag: 'ghi',
           keyId: '123',
-          algorithm: 'aes-256-gcm'
+          algorithm: 'aes-256-gcm',
         });
 
         expect(EncryptionUtils.isEncrypted(validFormat)).toBe(true);
@@ -70,10 +69,10 @@ describe('Encryption Utils', () => {
           '{}',
           'not-json',
           JSON.stringify({ iv: 'abc' }), // missing fields
-          JSON.stringify({ random: 'data' })
+          JSON.stringify({ random: 'data' }),
         ];
 
-        invalidFormats.forEach(format => {
+        invalidFormats.forEach((format) => {
           expect(EncryptionUtils.isEncrypted(format)).toBe(false);
         });
       });
@@ -95,7 +94,7 @@ describe('Encryption Utils', () => {
           content: content,
           tag: tag.toString('hex'),
           keyId,
-          algorithm
+          algorithm,
         });
       });
     });
@@ -105,7 +104,7 @@ describe('Encryption Utils', () => {
     it('should have required properties', () => {
       expect(DEFAULT_ENCRYPTION_CONFIG).toHaveProperty('algorithm');
       expect(DEFAULT_ENCRYPTION_CONFIG).toHaveProperty('keyRotation');
-      
+
       const keyRotation = DEFAULT_ENCRYPTION_CONFIG.keyRotation!;
       expect(keyRotation).toHaveProperty('enabled');
       expect(keyRotation).toHaveProperty('intervalDays');
@@ -114,7 +113,7 @@ describe('Encryption Utils', () => {
 
     it('should have valid values', () => {
       expect(DEFAULT_ENCRYPTION_CONFIG.algorithm).toBe('aes-256-gcm');
-      
+
       const keyRotation = DEFAULT_ENCRYPTION_CONFIG.keyRotation!;
       expect(keyRotation.enabled).toBe(true);
       expect(keyRotation.intervalDays).toBe(30);
@@ -135,7 +134,7 @@ describe('Encryption Utils', () => {
     describe('encrypt/decrypt', () => {
       it('should successfully encrypt and decrypt data', async () => {
         const testData = 'test data to encrypt';
-        
+
         const encrypted = await service.encrypt(testData);
         expect(encrypted).toBeDefined();
         expect(encrypted.content).toBeDefined();
@@ -156,14 +155,12 @@ describe('Encryption Utils', () => {
         await service.rotateKey();
         jest.spyOn(Date, 'now').mockReturnValue(Date.now() + 1000 * 60 * 60 * 24 * 8); // 8 dagen later
 
-        await expect(service.decrypt(encrypted))
-          .rejects
-          .toThrow(EncryptionError);
+        await expect(service.decrypt(encrypted)).rejects.toThrow(EncryptionError);
       });
 
       it('should handle large data efficiently', async () => {
         const largeData = 'x'.repeat(1024 * 1024); // 1MB data
-        
+
         const start = Date.now();
         const encrypted = await service.encrypt(largeData);
         const decrypted = await service.decrypt(encrypted);
@@ -202,9 +199,7 @@ describe('Encryption Utils', () => {
 
         // Test na grace period (8 dagen)
         jest.spyOn(Date, 'now').mockReturnValue(Date.now() + 1000 * 60 * 60 * 24 * 8);
-        await expect(service.decrypt(encrypted))
-          .rejects
-          .toThrow(EncryptionError);
+        await expect(service.decrypt(encrypted)).rejects.toThrow(EncryptionError);
       });
 
       it('should indicate when rotation is needed', async () => {
@@ -212,7 +207,7 @@ describe('Encryption Utils', () => {
 
         // Simuleer dat intervalDays verstreken zijn
         jest.spyOn(Date, 'now').mockReturnValue(Date.now() + 1000 * 60 * 60 * 24 * 31);
-        
+
         expect(service.needsKeyRotation()).toBe(true);
       });
     });
@@ -220,15 +215,13 @@ describe('Encryption Utils', () => {
     describe('error handling', () => {
       it('should handle uninitialized service', async () => {
         const uninitializedService = new EncryptionService();
-        await expect(uninitializedService.encrypt('test'))
-          .rejects
-          .toThrow(new EncryptionError('Encryption service niet geïnitialiseerd', 'NOT_INITIALIZED'));
+        await expect(uninitializedService.encrypt('test')).rejects.toThrow(
+          new EncryptionError('Encryption service niet geïnitialiseerd', 'NOT_INITIALIZED'),
+        );
       });
 
       it('should handle invalid input data', async () => {
-        await expect(service.encrypt(''))
-          .rejects
-          .toThrow(EncryptionError);
+        await expect(service.encrypt('')).rejects.toThrow(EncryptionError);
       });
 
       it('should handle invalid encrypted data format', async () => {
@@ -237,12 +230,10 @@ describe('Encryption Utils', () => {
           iv: 'def',
           tag: 'ghi',
           keyId: 'invalid',
-          algorithm: 'invalid'
+          algorithm: 'invalid',
         } as IEncryptionResult;
 
-        await expect(service.decrypt(invalidData))
-          .rejects
-          .toThrow(EncryptionError);
+        await expect(service.decrypt(invalidData)).rejects.toThrow(EncryptionError);
       });
 
       it('should handle rotation when disabled', async () => {
@@ -251,13 +242,13 @@ describe('Encryption Utils', () => {
           keyRotation: {
             enabled: false,
             intervalDays: 30,
-            gracePeriodDays: 7
-          }
+            gracePeriodDays: 7,
+          },
         });
 
-        await expect(serviceWithoutRotation.rotateKey())
-          .rejects
-          .toThrow(new EncryptionError('Key rotation niet ingeschakeld', 'ROTATION_DISABLED'));
+        await expect(serviceWithoutRotation.rotateKey()).rejects.toThrow(
+          new EncryptionError('Key rotation niet ingeschakeld', 'ROTATION_DISABLED'),
+        );
       });
     });
   });

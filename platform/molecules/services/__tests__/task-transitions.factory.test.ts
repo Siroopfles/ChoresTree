@@ -44,7 +44,7 @@ describe('TaskTransitionsFactory', () => {
 
   describe('createCancelTransition', () => {
     it('should create valid transition to CANCELLED from any status', async () => {
-      const statuses = Object.values(TaskStatus).filter(s => s !== TaskStatus.CANCELLED);
+      const statuses = Object.values(TaskStatus).filter((s) => s !== TaskStatus.CANCELLED);
 
       for (const status of statuses) {
         const transition = TaskTransitionsFactory.createCancelTransition(status);
@@ -59,7 +59,7 @@ describe('TaskTransitionsFactory', () => {
       const mockValidation = jest.fn().mockResolvedValue(false);
       const transition = TaskTransitionsFactory.createCancelTransition(
         TaskStatus.IN_PROGRESS,
-        mockValidation
+        mockValidation,
       );
 
       const result = await transition.validate();
@@ -76,28 +76,34 @@ describe('TaskTransitionsFactory', () => {
       // Should include start, complete and cancel transitions
       expect(transitions).toHaveLength(
         // 1 start + 1 complete + (all states except CANCELLED can transition to cancelled)
-        1 + 1 + (Object.keys(TaskStatus).length - 1)
+        1 + 1 + (Object.keys(TaskStatus).length - 1),
       );
 
       // Verify start transition
-      expect(transitions).toContainEqual(expect.objectContaining({
-        from: TaskStatus.TODO,
-        to: TaskStatus.IN_PROGRESS
-      }));
+      expect(transitions).toContainEqual(
+        expect.objectContaining({
+          from: TaskStatus.TODO,
+          to: TaskStatus.IN_PROGRESS,
+        }),
+      );
 
       // Verify complete transition
-      expect(transitions).toContainEqual(expect.objectContaining({
-        from: TaskStatus.IN_PROGRESS,
-        to: TaskStatus.COMPLETED
-      }));
+      expect(transitions).toContainEqual(
+        expect.objectContaining({
+          from: TaskStatus.IN_PROGRESS,
+          to: TaskStatus.COMPLETED,
+        }),
+      );
 
       // Verify cancel transitions
       for (const status of Object.values(TaskStatus)) {
         if (status !== TaskStatus.CANCELLED) {
-          expect(transitions).toContainEqual(expect.objectContaining({
-            from: status,
-            to: TaskStatus.CANCELLED
-          }));
+          expect(transitions).toContainEqual(
+            expect.objectContaining({
+              from: status,
+              to: TaskStatus.CANCELLED,
+            }),
+          );
         }
       }
     });
@@ -106,29 +112,27 @@ describe('TaskTransitionsFactory', () => {
       const mockValidations = {
         start: jest.fn().mockResolvedValue(true),
         complete: jest.fn().mockResolvedValue(true),
-        cancel: jest.fn().mockResolvedValue(true)
+        cancel: jest.fn().mockResolvedValue(true),
       };
 
       const transitions = TaskTransitionsFactory.createDefaultTransitions(mockValidations);
 
       // Test start transition
       const startTransition = transitions.find(
-        t => t.from === TaskStatus.TODO && t.to === TaskStatus.IN_PROGRESS
+        (t) => t.from === TaskStatus.TODO && t.to === TaskStatus.IN_PROGRESS,
       );
       await startTransition?.validate();
       expect(mockValidations.start).toHaveBeenCalled();
 
       // Test complete transition
       const completeTransition = transitions.find(
-        t => t.from === TaskStatus.IN_PROGRESS && t.to === TaskStatus.COMPLETED
+        (t) => t.from === TaskStatus.IN_PROGRESS && t.to === TaskStatus.COMPLETED,
       );
       await completeTransition?.validate();
       expect(mockValidations.complete).toHaveBeenCalled();
 
       // Test cancel transition
-      const cancelTransition = transitions.find(
-        t => t.to === TaskStatus.CANCELLED
-      );
+      const cancelTransition = transitions.find((t) => t.to === TaskStatus.CANCELLED);
       await cancelTransition?.validate();
       expect(mockValidations.cancel).toHaveBeenCalled();
     });

@@ -1,5 +1,8 @@
 import { TaskStatus } from '../../../atoms/entities/task.entity';
-import { StateTransition, TransitionValidationError } from '../../../atoms/interfaces/state-transition.interface';
+import {
+  StateTransition,
+  TransitionValidationError,
+} from '../../../atoms/interfaces/state-transition.interface';
 import { TaskStateMachine, createTaskStateMachine } from '../task-state-machine.service';
 
 describe('TaskStateMachine', () => {
@@ -10,7 +13,7 @@ describe('TaskStateMachine', () => {
     mockTransition = {
       from: TaskStatus.TODO,
       to: TaskStatus.IN_PROGRESS,
-      validate: jest.fn().mockResolvedValue(true)
+      validate: jest.fn().mockResolvedValue(true),
     };
 
     stateMachine = createTaskStateMachine(TaskStatus.TODO, [mockTransition]);
@@ -50,11 +53,13 @@ describe('TaskStateMachine', () => {
       await stateMachine.transition(TaskStatus.IN_PROGRESS, metadata);
 
       expect(stateMachine.getCurrentState()).toBe(TaskStatus.IN_PROGRESS);
-      expect(onTransitionSuccess).toHaveBeenCalledWith(expect.objectContaining({
-        from: TaskStatus.TODO,
-        to: TaskStatus.IN_PROGRESS,
-        metadata
-      }));
+      expect(onTransitionSuccess).toHaveBeenCalledWith(
+        expect.objectContaining({
+          from: TaskStatus.TODO,
+          to: TaskStatus.IN_PROGRESS,
+          metadata,
+        }),
+      );
     });
 
     it('should execute pre/post transition hooks', async () => {
@@ -70,9 +75,9 @@ describe('TaskStateMachine', () => {
     });
 
     it('should throw error for invalid transition', async () => {
-      await expect(stateMachine.transition(TaskStatus.COMPLETED))
-        .rejects
-        .toThrow(TransitionValidationError);
+      await expect(stateMachine.transition(TaskStatus.COMPLETED)).rejects.toThrow(
+        TransitionValidationError,
+      );
     });
 
     it('should emit error event when validation fails', async () => {
@@ -80,14 +85,14 @@ describe('TaskStateMachine', () => {
       stateMachine.on('transitionError', onTransitionError);
       (mockTransition.validate as jest.Mock).mockResolvedValueOnce(false);
 
-      await expect(stateMachine.transition(TaskStatus.IN_PROGRESS))
-        .rejects
-        .toThrow(TransitionValidationError);
+      await expect(stateMachine.transition(TaskStatus.IN_PROGRESS)).rejects.toThrow(
+        TransitionValidationError,
+      );
 
       expect(onTransitionError).toHaveBeenCalledWith(
         expect.any(TransitionValidationError),
         TaskStatus.TODO,
-        TaskStatus.IN_PROGRESS
+        TaskStatus.IN_PROGRESS,
       );
     });
   });

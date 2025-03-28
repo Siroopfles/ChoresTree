@@ -7,16 +7,16 @@ describe('Role Schema Validatie', () => {
         name: 'Test Role',
         permissions: [PermissionTypes.TASK_READ, PermissionTypes.TASK_CREATE],
         discordRoleId: '123456789012345678',
-        serverId: '876543210987654321'
+        serverId: '876543210987654321',
       };
 
       const result = await validateRole.create(data);
-      
+
       expect(result).toEqual({
         name: 'Test Role',
         permissions: [PermissionTypes.TASK_READ, PermissionTypes.TASK_CREATE],
         discordRoleId: '123456789012345678',
-        serverId: '876543210987654321'
+        serverId: '876543210987654321',
       });
     });
 
@@ -25,7 +25,7 @@ describe('Role Schema Validatie', () => {
         name: 'Test Role',
         permissions: [PermissionTypes.TASK_READ, PermissionTypes.TASK_READ],
         discordRoleId: '123456789012345678',
-        serverId: '876543210987654321'
+        serverId: '876543210987654321',
       };
 
       const result = await validateRole.create(data);
@@ -37,7 +37,7 @@ describe('Role Schema Validatie', () => {
         name: '',
         permissions: [],
         discordRoleId: 'invalid',
-        serverId: 'invalid'
+        serverId: 'invalid',
       };
 
       await expect(validateRole.create(data)).rejects.toThrow('Create role validatie errors');
@@ -48,20 +48,20 @@ describe('Role Schema Validatie', () => {
     it('should validate a valid partial update', async () => {
       const data = {
         name: 'Updated Role',
-        permissions: [PermissionTypes.TASK_READ]
+        permissions: [PermissionTypes.TASK_READ],
       };
 
       const result = await validateRole.update(data);
       expect(result).toEqual({
         name: 'Updated Role',
-        permissions: [PermissionTypes.TASK_READ]
+        permissions: [PermissionTypes.TASK_READ],
       });
     });
 
     it('should reject invalid update data', async () => {
       const data = {
         name: '@invalid@',
-        permissions: ['INVALID_PERMISSION'] as unknown as string[]
+        permissions: ['INVALID_PERMISSION'] as unknown as string[],
       };
 
       await expect(validateRole.update(data)).rejects.toThrow('Update role validatie errors');
@@ -76,10 +76,10 @@ describe('Role Schema Validatie', () => {
           PermissionTypes.TASK_CREATE,
           PermissionTypes.TASK_UPDATE,
           PermissionTypes.MEMBER_MANAGE,
-          PermissionTypes.ROLE_MANAGE
+          PermissionTypes.ROLE_MANAGE,
         ],
         discordRoleId: '123456789012345678',
-        serverId: '876543210987654321'
+        serverId: '876543210987654321',
       };
 
       const result = await validateRole.create(data);
@@ -91,11 +91,12 @@ describe('Role Schema Validatie', () => {
         name: 'Test Role',
         permissions: [],
         discordRoleId: '123456789012345678',
-        serverId: '876543210987654321'
+        serverId: '876543210987654321',
       };
 
-      await expect(validateRole.create(data))
-        .rejects.toThrow('Minimaal één permissie is verplicht');
+      await expect(validateRole.create(data)).rejects.toThrow(
+        'Minimaal één permissie is verplicht',
+      );
     });
 
     it('should reject invalid permission types', async () => {
@@ -103,11 +104,10 @@ describe('Role Schema Validatie', () => {
         name: 'Test Role',
         permissions: ['INVALID_PERMISSION'] as unknown as string[],
         discordRoleId: '123456789012345678',
-        serverId: '876543210987654321'
+        serverId: '876543210987654321',
       };
 
-      await expect(validateRole.create(data))
-        .rejects.toThrow('Ongeldige permissie');
+      await expect(validateRole.create(data)).rejects.toThrow('Ongeldige permissie');
     });
   });
 
@@ -122,8 +122,8 @@ describe('Role Schema Validatie', () => {
           color: '#FF0000',
           position: 1,
           managed: false,
-          mentionable: true
-        }
+          mentionable: true,
+        },
       };
 
       const result = await validateRole.create(data);
@@ -133,7 +133,7 @@ describe('Role Schema Validatie', () => {
         color: '#FF0000',
         position: 1,
         managed: false,
-        mentionable: true
+        mentionable: true,
       });
     });
 
@@ -142,11 +142,12 @@ describe('Role Schema Validatie', () => {
         name: 'Test Role',
         permissions: [PermissionTypes.TASK_READ],
         discordRoleId: '123', // Too short
-        serverId: '876543210987654321abc' // Invalid format
+        serverId: '876543210987654321abc', // Invalid format
       };
 
-      await expect(validateRole.create(data))
-        .rejects.toThrow('Discord rol ID moet een geldig snowflake ID zijn');
+      await expect(validateRole.create(data)).rejects.toThrow(
+        'Discord rol ID moet een geldig snowflake ID zijn',
+      );
     });
 
     it('should validate discord metadata', async () => {
@@ -159,8 +160,8 @@ describe('Role Schema Validatie', () => {
           color: '#FF00FF',
           position: 0,
           managed: true,
-          mentionable: false
-        }
+          mentionable: false,
+        },
       };
 
       const result = await validateRole.create(data);
@@ -168,7 +169,7 @@ describe('Role Schema Validatie', () => {
         color: '#FF00FF',
         position: 0,
         managed: true,
-        mentionable: false
+        mentionable: false,
       });
     });
 
@@ -181,8 +182,8 @@ describe('Role Schema Validatie', () => {
         metadata: {
           color: 'not-a-hex',
           position: -1,
-          managed: 'not-a-boolean'
-        }
+          managed: 'not-a-boolean',
+        },
       };
 
       await expect(validateRole.create(data)).rejects.toThrow();
@@ -195,7 +196,7 @@ describe('Role Schema Validatie', () => {
         name: 'Valid-Role-123',
         permissions: [PermissionTypes.TASK_READ],
         discordRoleId: '123456789012345678',
-        serverId: '876543210987654321'
+        serverId: '876543210987654321',
       };
 
       const result = await validateRole.create(data);
@@ -207,7 +208,7 @@ describe('Role Schema Validatie', () => {
         name: '  Test Role  ',
         permissions: [PermissionTypes.TASK_READ],
         discordRoleId: '123456789012345678',
-        serverId: '876543210987654321'
+        serverId: '876543210987654321',
       };
 
       const result = await validateRole.create(data);
@@ -219,11 +220,12 @@ describe('Role Schema Validatie', () => {
         name: 'Invalid@Role#Name',
         permissions: [PermissionTypes.TASK_READ],
         discordRoleId: '123456789012345678',
-        serverId: '876543210987654321'
+        serverId: '876543210987654321',
       };
 
-      await expect(validateRole.create(data))
-        .rejects.toThrow('Naam mag alleen letters, cijfers, spaties en koppeltekens bevatten');
+      await expect(validateRole.create(data)).rejects.toThrow(
+        'Naam mag alleen letters, cijfers, spaties en koppeltekens bevatten',
+      );
     });
 
     it('should enforce name length limits', async () => {
@@ -231,11 +233,12 @@ describe('Role Schema Validatie', () => {
         name: 'a'.repeat(101),
         permissions: [PermissionTypes.TASK_READ],
         discordRoleId: '123456789012345678',
-        serverId: '876543210987654321'
+        serverId: '876543210987654321',
       };
 
-      await expect(validateRole.create(data))
-        .rejects.toThrow('Naam mag maximaal 100 karakters zijn');
+      await expect(validateRole.create(data)).rejects.toThrow(
+        'Naam mag maximaal 100 karakters zijn',
+      );
     });
   });
 
@@ -245,7 +248,7 @@ describe('Role Schema Validatie', () => {
         name: '@invalid@',
         permissions: ['INVALID'] as unknown as string[],
         discordRoleId: 'invalid',
-        serverId: '123'
+        serverId: '123',
       };
 
       try {
@@ -253,7 +256,9 @@ describe('Role Schema Validatie', () => {
         fail('Should have thrown validation error');
       } catch (error) {
         const message = (error as Error).message;
-        expect(message).toContain('Naam mag alleen letters, cijfers, spaties en koppeltekens bevatten');
+        expect(message).toContain(
+          'Naam mag alleen letters, cijfers, spaties en koppeltekens bevatten',
+        );
         expect(message).toContain('Ongeldige permissie');
         expect(message).toContain('Discord rol ID moet een geldig snowflake ID zijn');
         expect(message).toContain('Server ID moet een geldig snowflake ID zijn');
@@ -265,27 +270,29 @@ describe('Role Schema Validatie', () => {
         name: '',
         permissions: [],
         discordRoleId: 'invalid',
-        serverId: 'invalid'
+        serverId: 'invalid',
       };
 
       try {
         await validateRole.create(data);
         fail('Should have thrown validation error');
       } catch (error) {
-        const errors = JSON.parse((error as Error).message.split('Create role validatie errors: ')[1]);
+        const errors = JSON.parse(
+          (error as Error).message.split('Create role validatie errors: ')[1],
+        );
         expect(errors).toHaveLength(5);
         // Name heeft twee validatie errors
         expect(errors).toContainEqual({
           field: 'name',
-          message: 'Naam mag niet leeg zijn'
+          message: 'Naam mag niet leeg zijn',
         });
         expect(errors).toContainEqual({
           field: 'name',
-          message: 'Naam mag alleen letters, cijfers, spaties en koppeltekens bevatten'
+          message: 'Naam mag alleen letters, cijfers, spaties en koppeltekens bevatten',
         });
         expect(errors).toContainEqual({
           field: 'permissions',
-          message: 'Minimaal één permissie is verplicht'
+          message: 'Minimaal één permissie is verplicht',
         });
       }
     });
@@ -302,7 +309,7 @@ describe('Role Schema Validatie', () => {
         serverId: '876543210987654321',
         createdAt: now,
         updatedAt: now,
-        version: 1
+        version: 1,
       };
 
       const result = await validateRole.complete(data);
@@ -316,11 +323,10 @@ describe('Role Schema Validatie', () => {
         permissions: [],
         discordRoleId: 'invalid',
         serverId: 'invalid',
-        version: -1
+        version: -1,
       };
 
-      await expect(validateRole.complete(data))
-        .rejects.toThrow('Role validatie errors');
+      await expect(validateRole.complete(data)).rejects.toThrow('Role validatie errors');
     });
   });
 });

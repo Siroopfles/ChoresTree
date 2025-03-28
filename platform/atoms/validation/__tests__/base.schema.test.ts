@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { baseSchema, createEntitySchema, createPartialSchema, validateSchema } from '../base.schema';
+import {
+  baseSchema,
+  createEntitySchema,
+  createPartialSchema,
+  validateSchema,
+} from '../base.schema';
 
 describe('Base Schema Validation', () => {
   // Test data setup
@@ -7,30 +12,34 @@ describe('Base Schema Validation', () => {
     id: '123e4567-e89b-12d3-a456-426614174000',
     createdAt: new Date('2025-01-01'),
     updatedAt: new Date('2025-01-02'),
-    version: 1
+    version: 1,
   };
 
   describe('Edge Cases - Metadata Validation', () => {
     test('should validate maximum UUID length', async () => {
       const data = {
         ...validBaseData,
-        id: '123e4567-e89b-12d3-a456-426614174000'.repeat(2)
+        id: '123e4567-e89b-12d3-a456-426614174000'.repeat(2),
       };
-      await expect(validateSchema(baseSchema, data)).rejects.toThrow('ID moet een geldig UUID zijn');
+      await expect(validateSchema(baseSchema, data)).rejects.toThrow(
+        'ID moet een geldig UUID zijn',
+      );
     });
 
     test('should validate minimum version number', async () => {
       const data = {
         ...validBaseData,
-        version: 0
+        version: 0,
       };
-      await expect(validateSchema(baseSchema, data)).rejects.toThrow('Versie moet een positief geheel getal zijn');
+      await expect(validateSchema(baseSchema, data)).rejects.toThrow(
+        'Versie moet een positief geheel getal zijn',
+      );
     });
 
     test('should validate version number is integer', async () => {
       const data = {
         ...validBaseData,
-        version: 1.5
+        version: 1.5,
       };
       await expect(validateSchema(baseSchema, data)).rejects.toThrow();
     });
@@ -39,26 +48,35 @@ describe('Base Schema Validation', () => {
       const maxVersion = 999999999; // Realistisch maximum voor versie nummer
       const validData = {
         ...validBaseData,
-        version: maxVersion
+        version: maxVersion,
       };
       await expect(validateSchema(baseSchema, validData)).resolves.toBeDefined();
 
       const invalidData = {
         ...validBaseData,
-        version: maxVersion + 1
+        version: maxVersion + 1,
       };
-      await expect(validateSchema(baseSchema.extend({ 
-        version: z.number().int().positive().max(maxVersion, {
-          message: `Versie moet kleiner zijn dan ${maxVersion}`
-        })
-      }), invalidData)).rejects.toThrow();
+      await expect(
+        validateSchema(
+          baseSchema.extend({
+            version: z
+              .number()
+              .int()
+              .positive()
+              .max(maxVersion, {
+                message: `Versie moet kleiner zijn dan ${maxVersion}`,
+              }),
+          }),
+          invalidData,
+        ),
+      ).rejects.toThrow();
     });
 
     test('should validate date boundaries', async () => {
       const data = {
         ...validBaseData,
         createdAt: new Date('1000-01-01'),
-        updatedAt: new Date('9999-12-31')
+        updatedAt: new Date('9999-12-31'),
       };
       await expect(validateSchema(baseSchema, data)).resolves.toBeDefined();
     });
@@ -68,34 +86,35 @@ describe('Base Schema Validation', () => {
     test('should handle Unicode characters in UUID', async () => {
       const data = {
         ...validBaseData,
-        id: '123e4567-e89b-12d3-a456-426614174000' // Valid UUID only allows specific characters
+        id: '123e4567-e89b-12d3-a456-426614174000', // Valid UUID only allows specific characters
       };
       await expect(validateSchema(baseSchema, data)).resolves.toBeDefined();
     });
 
     test('should handle special characters in error messages', async () => {
       const customSchema = createEntitySchema({
-        name: z.string().min(1, 'Naam moet minimaal één karakter bevatten: äöü')
+        name: z.string().min(1, 'Naam moet minimaal één karakter bevatten: äöü'),
       });
-      
-      await expect(validateSchema(customSchema, { ...validBaseData, name: '' }))
-        .rejects.toThrow('één');
+
+      await expect(validateSchema(customSchema, { ...validBaseData, name: '' })).rejects.toThrow(
+        'één',
+      );
     });
 
     test('should validate non-ASCII characters in string fields', async () => {
       const schema = createEntitySchema({
-        name: z.string().min(1)
+        name: z.string().min(1),
       });
 
       const validData = {
         ...validBaseData,
-        name: 'こんにちは'  // Japanese
+        name: 'こんにちは', // Japanese
       };
       await expect(validateSchema(schema, validData)).resolves.toBeDefined();
 
       const validData2 = {
         ...validBaseData,
-        name: 'Café' // Accented characters
+        name: 'Café', // Accented characters
       };
       await expect(validateSchema(schema, validData2)).resolves.toBeDefined();
     });
@@ -103,22 +122,22 @@ describe('Base Schema Validation', () => {
 
   describe('Concurrent Validation', () => {
     test('should handle multiple parallel validations', async () => {
-      const validations = Array(10).fill(null).map(() => 
-        validateSchema(baseSchema, validBaseData)
-      );
-      
+      const validations = Array(10)
+        .fill(null)
+        .map(() => validateSchema(baseSchema, validBaseData));
+
       await expect(Promise.all(validations)).resolves.toBeDefined();
     });
 
     test('should handle race conditions in partial updates', async () => {
       const partialSchema = createPartialSchema({
-        name: z.string().optional()
+        name: z.string().optional(),
       });
 
       const updates = [
         validateSchema(partialSchema, { version: 1 }),
         validateSchema(partialSchema, { version: 2 }),
-        validateSchema(partialSchema, { version: 3 })
+        validateSchema(partialSchema, { version: 3 }),
       ];
 
       await expect(Promise.all(updates)).resolves.toBeDefined();
@@ -131,7 +150,7 @@ describe('Base Schema Validation', () => {
         id: 'invalid-uuid',
         createdAt: 'invalid-date',
         updatedAt: null,
-        version: -1
+        version: -1,
       };
 
       try {
@@ -155,22 +174,23 @@ describe('Base Schema Validation', () => {
         throw new Error('Niet-validatie error');
       });
 
-      await expect(validateSchema(throwingSchema, validBaseData))
-        .rejects.toThrow('Niet-validatie error');
+      await expect(validateSchema(throwingSchema, validBaseData)).rejects.toThrow(
+        'Niet-validatie error',
+      );
     });
 
     test('should maintain error consistency across nested schemas', async () => {
       const nestedSchema = createEntitySchema({
         nested: z.object({
           field: z.string({
-            required_error: 'Genest veld is verplicht'
-          })
-        })
+            required_error: 'Genest veld is verplicht',
+          }),
+        }),
       });
 
       const data = {
         ...validBaseData,
-        nested: { field: null }
+        nested: { field: null },
       };
 
       try {
@@ -190,13 +210,13 @@ describe('Base Schema Validation', () => {
     test('should correctly extend base schema', async () => {
       const extendedSchema = createEntitySchema({
         name: z.string(),
-        age: z.number().positive()
+        age: z.number().positive(),
       });
 
       const validData = {
         ...validBaseData,
         name: 'Test',
-        age: 25
+        age: 25,
       };
 
       await expect(validateSchema(extendedSchema, validData)).resolves.toBeDefined();
@@ -205,11 +225,11 @@ describe('Base Schema Validation', () => {
     test('should handle partial schema updates', async () => {
       const partialSchema = createPartialSchema({
         name: z.string(),
-        age: z.number().positive()
+        age: z.number().positive(),
       });
 
       const partialData = {
-        name: 'Test Update'
+        name: 'Test Update',
       };
 
       await expect(validateSchema(partialSchema, partialData)).resolves.toBeDefined();
@@ -217,17 +237,18 @@ describe('Base Schema Validation', () => {
 
     test('should preserve base schema validation in extended schemas', async () => {
       const extendedSchema = createEntitySchema({
-        name: z.string()
+        name: z.string(),
       });
 
       const invalidData = {
         ...validBaseData,
         id: 'invalid-uuid',
-        name: 'Test'
+        name: 'Test',
       };
 
-      await expect(validateSchema(extendedSchema, invalidData))
-        .rejects.toThrow('ID moet een geldig UUID zijn');
+      await expect(validateSchema(extendedSchema, invalidData)).rejects.toThrow(
+        'ID moet een geldig UUID zijn',
+      );
     });
   });
 });

@@ -35,7 +35,7 @@ class DateCache {
    */
   getFormatter(format: string, locale: string, timezone: string): Intl.DateTimeFormat {
     const key = `${format}|${locale}|${timezone}`;
-    
+
     if (this.formattersCache.has(key)) {
       return this.formattersCache.get(key)!;
     }
@@ -50,7 +50,7 @@ class DateCache {
 
     const formatter = new Intl.DateTimeFormat(locale, {
       ...this.parseFormat(format),
-      timeZone: timezone
+      timeZone: timezone,
     });
 
     this.formattersCache.set(key, formatter);
@@ -62,9 +62,9 @@ class DateCache {
    */
   private parseFormat(format: string): Intl.DateTimeFormatOptions {
     const options: Intl.DateTimeFormatOptions = {};
-    const tokens = format.split(',').map(t => t.trim());
+    const tokens = format.split(',').map((t) => t.trim());
 
-    tokens.forEach(token => {
+    tokens.forEach((token) => {
       switch (token) {
         case 'date':
           options.year = 'numeric';
@@ -104,7 +104,7 @@ export class DateUtils {
   private static readonly defaultConfig: IDateConfig = {
     defaultTimezone: 'Europe/Amsterdam',
     defaultLocale: 'nl-NL',
-    cacheSize: 50
+    cacheSize: 50,
   };
 
   private static config: IDateConfig = { ...DateUtils.defaultConfig };
@@ -131,16 +131,12 @@ export class DateUtils {
   public static format(date: Date, options: IDateFormat): string {
     const locale = options.locale || DateUtils.config.defaultLocale;
     const timezone = options.timezone || DateUtils.config.defaultTimezone;
-    
+
     if (!locale || !timezone) {
       throw new Error('Locale and timezone must be provided either in options or default config');
     }
 
-    const formatter = DateUtils.cache.getFormatter(
-      options.format,
-      locale,
-      timezone
-    );
+    const formatter = DateUtils.cache.getFormatter(options.format, locale, timezone);
 
     return formatter.format(date);
   }

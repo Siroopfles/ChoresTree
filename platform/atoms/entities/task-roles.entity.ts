@@ -75,8 +75,8 @@ export class TaskRolesEntity extends BaseEntity {
    * @type {TaskEntity}
    * @required
    */
-  @ManyToOne(() => TaskEntity, task => task.taskRoles, {
-    onDelete: 'CASCADE'
+  @ManyToOne(() => TaskEntity, (task) => task.taskRoles, {
+    onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'taskId' })
   task!: TaskEntity;
@@ -98,8 +98,8 @@ export class TaskRolesEntity extends BaseEntity {
    * @type {RoleEntity}
    * @required
    */
-  @ManyToOne(() => RoleEntity, role => role.taskRoles, {
-    onDelete: 'CASCADE'
+  @ManyToOne(() => RoleEntity, (role) => role.taskRoles, {
+    onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'roleId' })
   role!: RoleEntity;

@@ -8,17 +8,23 @@ export const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test'], {
     description: 'Node environment',
     errorMap: () => ({
-      message: 'NODE_ENV moet development, production of test zijn'
-    })
+      message: 'NODE_ENV moet development, production of test zijn',
+    }),
   }),
-  PORT: z.coerce.number().int().positive({
-    message: 'PORT moet een positief geheel getal zijn'
-  }).default(3000),
+  PORT: z.coerce
+    .number()
+    .int()
+    .positive({
+      message: 'PORT moet een positief geheel getal zijn',
+    })
+    .default(3000),
 
-  // Database configuratie  
-  DB_HOST: z.string({
-    required_error: 'Database host is verplicht'
-  }).min(1, 'Database host mag niet leeg zijn'),
+  // Database configuratie
+  DB_HOST: z
+    .string({
+      required_error: 'Database host is verplicht',
+    })
+    .min(1, 'Database host mag niet leeg zijn'),
   DB_PORT: z.coerce.number().int().positive().default(5432),
   DB_NAME: z.string().min(1, 'Database naam is verplicht'),
   DB_USER: z.string().min(1, 'Database gebruiker is verplicht'),
@@ -26,7 +32,7 @@ export const envSchema = z.object({
 
   // Redis configuratie
   REDIS_URL: z.string().url({
-    message: 'Redis URL moet een geldige URL zijn'
+    message: 'Redis URL moet een geldige URL zijn',
   }),
   REDIS_PASSWORD: z.string().optional(),
 
@@ -36,7 +42,7 @@ export const envSchema = z.object({
 
   // Encryptie configuratie
   ENCRYPTION_KEY: z.string().min(32, 'Encryption key moet minimaal 32 karakters zijn'),
-  ENCRYPTION_IV: z.string().length(16, 'Encryption IV moet exact 16 karakters zijn')
+  ENCRYPTION_IV: z.string().length(16, 'Encryption IV moet exact 16 karakters zijn'),
 });
 
 /**
@@ -54,26 +60,26 @@ export const configSchema = envSchema.extend({
     port: z.number(),
     name: z.string(),
     user: z.string(),
-    password: z.string()
+    password: z.string(),
   }),
 
-  // Redis config object  
+  // Redis config object
   redis: z.object({
     url: z.string(),
-    password: z.string().optional()
+    password: z.string().optional(),
   }),
 
   // Discord config object
   discord: z.object({
     token: z.string(),
-    clientId: z.string()
+    clientId: z.string(),
   }),
 
   // Encryptie config object
   encryption: z.object({
     key: z.string(),
-    iv: z.string()
-  })
+    iv: z.string(),
+  }),
 });
 
 /**
@@ -89,9 +95,9 @@ export async function validateEnv(env: NodeJS.ProcessEnv): Promise<ValidatedEnv>
     return await envSchema.parseAsync(env);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const errors = error.errors.map(err => ({
+      const errors = error.errors.map((err) => ({
         field: err.path.join('.'),
-        message: err.message
+        message: err.message,
       }));
       throw new Error(`Environment validatie errors: ${JSON.stringify(errors)}`);
     }
@@ -112,19 +118,19 @@ export async function createConfig(env: NodeJS.ProcessEnv): Promise<ValidatedCon
       port: validatedEnv.DB_PORT,
       name: validatedEnv.DB_NAME,
       user: validatedEnv.DB_USER,
-      password: validatedEnv.DB_PASSWORD
+      password: validatedEnv.DB_PASSWORD,
     },
     redis: {
       url: validatedEnv.REDIS_URL,
-      password: validatedEnv.REDIS_PASSWORD
+      password: validatedEnv.REDIS_PASSWORD,
     },
     discord: {
       token: validatedEnv.DISCORD_TOKEN,
-      clientId: validatedEnv.DISCORD_CLIENT_ID
+      clientId: validatedEnv.DISCORD_CLIENT_ID,
     },
     encryption: {
       key: validatedEnv.ENCRYPTION_KEY,
-      iv: validatedEnv.ENCRYPTION_IV
-    }
+      iv: validatedEnv.ENCRYPTION_IV,
+    },
   };
 }

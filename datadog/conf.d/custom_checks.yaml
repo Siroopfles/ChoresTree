@@ -1,0 +1,97 @@
+init_config:
+
+instances:
+  - min_collection_interval: 15 # Collect metrics every 15 seconds
+
+# Custom metrics configuration
+custom_metrics:
+  # Application health metrics
+  - name: app.health
+    type: gauge
+    tags:
+      - service:chorestree
+      - env:production
+
+  # Performance metrics
+  - name: app.task.processing_time
+    type: histogram
+    tags:
+      - service:chorestree
+      - type:task_processing
+
+  # Error tracking
+  - name: app.errors
+    type: count
+    tags:
+      - service:chorestree
+      - type:error
+
+# Service checks
+checks:
+  # Database connection check
+  - name: postgres.can_connect
+    type: service_check
+    command: ["pg_isready", "-U", "$$DB_USER"]
+    interval: 30
+    timeout: 5
+
+  # Redis connection check
+  - name: redis.can_connect
+    type: service_check
+    command: ["redis-cli", "ping"]
+    interval: 30
+    timeout: 5
+
+  # RabbitMQ connection check
+  - name: rabbitmq.can_connect
+    type: service_check
+    command: ["rabbitmq-diagnostics", "check_port_connectivity"]
+    interval: 30
+    timeout: 5
+
+# Log processing rules
+logs:
+  - type: file
+    path: /var/log/app/*.log
+    service: chorestree
+    source: custom
+    log_processing_rules:
+      - type: multi_line
+        pattern: \d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}
+        name: new_log_start
+
+# APM configuration
+apm_config:
+  enabled: true
+  analyzed_spans:
+    chorestree|task.process: 1.0  # Analyze 100% of task processing spans
+    chorestree|http.request: 0.5   # Analyze 50% of HTTP request spans
+
+# Monitors
+monitors:
+  # Service availability monitor
+  - name: "Service Availability Check"
+    type: "service check"
+    query: "avg(last_5m):avg:app.health{*} < 1"
+    message: "Service health check failed"
+    tags:
+      - "severity:high"
+      - "service:chorestree"
+
+  # Error rate monitor
+  - name: "High Error Rate Alert"
+    type: "metric alert"
+    query: "sum(last_5m):sum:app.errors{*} > 10"
+    message: "High error rate detected"
+    tags:
+      - "severity:high"
+      - "service:chorestree"
+
+  # Performance monitor
+  - name: "Performance Degradation Alert"
+    type: "metric alert"
+    query: "avg(last_10m):avg:app.task.processing_time{*} > 5"
+    message: "Task processing time is above threshold"
+    tags:
+      - "severity:medium"
+      - "service:chorestree"

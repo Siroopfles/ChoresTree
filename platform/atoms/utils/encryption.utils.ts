@@ -1,5 +1,9 @@
 import crypto from 'crypto';
-import { IEncryptionConfig, EncryptionError, IEncryptionResult } from '../interfaces/encryption.interface';
+import {
+  IEncryptionConfig,
+  EncryptionError,
+  IEncryptionResult,
+} from '../interfaces/encryption.interface';
 
 /**
  * Default encryptie configuratie
@@ -9,8 +13,8 @@ export const DEFAULT_ENCRYPTION_CONFIG: IEncryptionConfig = {
   keyRotation: {
     enabled: true,
     intervalDays: 30,
-    gracePeriodDays: 7
-  }
+    gracePeriodDays: 7,
+  },
 };
 
 /**
@@ -49,20 +53,17 @@ export class EncryptionService {
     try {
       // Genereer random IV
       const iv = crypto.randomBytes(12);
-      
+
       // Maak cipher met huidige sleutel
       // Type cast voor AES-GCM cipher
       const cipher = crypto.createCipheriv(
         this.config.algorithm,
         Buffer.from(this.currentKey, 'hex'),
-        iv
+        iv,
       ) as crypto.CipherGCM;
 
       // Encrypt data
-      const encrypted = Buffer.concat([
-        cipher.update(value, 'utf8'),
-        cipher.final()
-      ]);
+      const encrypted = Buffer.concat([cipher.update(value, 'utf8'), cipher.final()]);
 
       // Haal authentication tag op
       const tag = cipher.getAuthTag();
@@ -72,14 +73,10 @@ export class EncryptionService {
         iv: iv.toString('hex'),
         tag: tag.toString('hex'),
         keyId: this.keyTimestamp.toString(),
-        algorithm: this.config.algorithm
+        algorithm: this.config.algorithm,
       };
     } catch (error) {
-      throw new EncryptionError(
-        'Encryptie mislukt',
-        'ENCRYPTION_FAILED',
-        error as Error
-      );
+      throw new EncryptionError('Encryptie mislukt', 'ENCRYPTION_FAILED', error as Error);
     }
   }
 
@@ -107,7 +104,7 @@ export class EncryptionService {
       const decipher = crypto.createDecipheriv(
         encrypted.algorithm,
         Buffer.from(key, 'hex'),
-        Buffer.from(encrypted.iv, 'hex')
+        Buffer.from(encrypted.iv, 'hex'),
       ) as crypto.DecipherGCM;
 
       // Zet authentication tag
@@ -116,7 +113,7 @@ export class EncryptionService {
       // Decrypt data
       const decrypted = Buffer.concat([
         decipher.update(Buffer.from(encrypted.content, 'base64')),
-        decipher.final()
+        decipher.final(),
       ]);
 
       return decrypted.toString('utf8');
@@ -124,11 +121,7 @@ export class EncryptionService {
       if (error instanceof EncryptionError) {
         throw error;
       }
-      throw new EncryptionError(
-        'Decryptie mislukt',
-        'DECRYPTION_FAILED',
-        error as Error
-      );
+      throw new EncryptionError('Decryptie mislukt', 'DECRYPTION_FAILED', error as Error);
     }
   }
 
@@ -143,7 +136,7 @@ export class EncryptionService {
 
     // Bewaar huidige sleutel als vorige
     this.previousKey = this.currentKey;
-    
+
     // Genereer nieuwe sleutel
     const newKey = await EncryptionUtils.generateKey();
     this.currentKey = newKey;
@@ -176,7 +169,7 @@ export class EncryptionService {
     if (this.previousKey && this.config.keyRotation?.gracePeriodDays) {
       const now = Date.now();
       const daysSinceRotation = (now - keyTimestamp) / (1000 * 60 * 60 * 24);
-      
+
       if (daysSinceRotation <= this.config.keyRotation.gracePeriodDays) {
         return this.previousKey;
       }
@@ -196,10 +189,7 @@ export class EncryptionValidator {
    */
   static validateKey(key: string): void {
     if (!key || typeof key !== 'string' || key.length < 32) {
-      throw new EncryptionError(
-        'Ongeldige encryptie sleutel',
-        'INVALID_KEY'
-      );
+      throw new EncryptionError('Ongeldige encryptie sleutel', 'INVALID_KEY');
     }
   }
 
@@ -209,10 +199,7 @@ export class EncryptionValidator {
    */
   static validateEncryptedData(data: string): void {
     if (!data || typeof data !== 'string') {
-      throw new EncryptionError(
-        'Ongeldige encrypted data',
-        'INVALID_DATA'
-      );
+      throw new EncryptionError('Ongeldige encrypted data', 'INVALID_DATA');
     }
   }
 }
@@ -258,14 +245,14 @@ export const EncryptionUtils = {
     iv: Buffer,
     tag: Buffer,
     keyId: string,
-    algorithm: string
+    algorithm: string,
   ): string => {
     return JSON.stringify({
       iv: iv.toString('hex'),
       content: content,
       tag: tag.toString('hex'),
       keyId,
-      algorithm
+      algorithm,
     });
-  }
+  },
 };

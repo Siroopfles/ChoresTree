@@ -28,7 +28,7 @@ class TestService implements IEntityService<TestEntity> {
     const validFields = {
       name: data.name,
       value: data.value,
-      optional: data.optional
+      optional: data.optional,
     };
 
     throw new Error('Not implemented');
@@ -38,14 +38,14 @@ class TestService implements IEntityService<TestEntity> {
     // Type check: alle velden optional behalve bij create
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const partial: UpdateDTO<TestEntity> = {
-      name: 'test' // Optional, niet alle velden nodig
+      name: 'test', // Optional, niet alle velden nodig
     };
 
     // @ts-expect-error - Should not allow system fields
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const error1 = data.id;
     // @ts-expect-error - Should not allow system fields
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars  
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const error2 = data.version;
 
     throw new Error('Not implemented');
@@ -61,9 +61,9 @@ class TestService implements IEntityService<TestEntity> {
     const validFields = {
       id: data.id,
       name: data.name,
-      value: data.value
+      value: data.value,
     };
-    
+
     return true;
   }
 }
@@ -75,28 +75,26 @@ describe('Service Interface Type Tests', () => {
     const validError: ServiceError = {
       code: 'VALIDATION_ERROR',
       message: 'Invalid data',
-      errors: [
-        { field: 'name', message: 'Required' }
-      ]
+      errors: [{ field: 'name', message: 'Required' }],
     };
 
     // @ts-expect-error - Should require code
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const errorWithoutCode: ServiceError = {
-      message: 'Missing code'
+      message: 'Missing code',
     };
 
     // @ts-expect-error - Should require message
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const errorWithoutMessage: ServiceError = {
-      code: 'ERROR'
+      code: 'ERROR',
     };
 
     // Valid without errors array
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const validErrorWithoutErrors: ServiceError = {
       code: 'ERROR',
-      message: 'Valid error'
+      message: 'Valid error',
     };
   });
 

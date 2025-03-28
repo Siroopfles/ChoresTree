@@ -1,5 +1,5 @@
 import { Entity, Column, OneToMany } from 'typeorm';
-import { BaseEntity } from './base.entity';
+import { BaseEntity, EncryptedEntity } from './base.entity';
 import { NotificationEntity } from './notification.entity';
 import { TaskRolesEntity } from './task-roles.entity';
 import { Encrypt } from '../decorators/encrypt.decorator';
@@ -11,7 +11,7 @@ export enum TaskStatus {
   TODO = 'TODO',
   IN_PROGRESS = 'IN_PROGRESS',
   COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED'
+  CANCELLED = 'CANCELLED',
 }
 
 /**
@@ -97,7 +97,7 @@ export enum TaskStatus {
  * ```
  */
 @Entity('tasks')
-export class TaskEntity extends BaseEntity {
+export class TaskEntity extends EncryptedEntity {
   /**
    * De titel van de taak, encrypted opgeslagen voor privacy.
    *
@@ -162,7 +162,7 @@ export class TaskEntity extends BaseEntity {
   @Column({
     type: 'enum',
     enum: TaskStatus,
-    default: TaskStatus.TODO
+    default: TaskStatus.TODO,
   })
   status!: TaskStatus;
 
@@ -249,7 +249,7 @@ export class TaskEntity extends BaseEntity {
    * @type {NotificationEntity[]}
    * @optional
    */
-  @OneToMany(() => NotificationEntity, notification => notification.task)
+  @OneToMany(() => NotificationEntity, (notification) => notification.task)
   notifications?: NotificationEntity[];
 
   /**
@@ -275,8 +275,10 @@ export class TaskEntity extends BaseEntity {
    * @type {TaskRolesEntity[]}
    * @optional
    */
-  @OneToMany(() => TaskRolesEntity, taskRole => taskRole.task)
+  @OneToMany(() => TaskRolesEntity, (taskRole) => taskRole.task)
   taskRoles?: TaskRolesEntity[];
+
+  public readonly encryptedFields = ['title', 'description'];
 }
 
 /**
@@ -327,7 +329,4 @@ export class TaskEntity extends BaseEntity {
  * };
  * ```
  */
-export type CreateTaskData = Omit<
-  TaskEntity,
-  keyof BaseEntity
->;
+export type CreateTaskData = Omit<TaskEntity, keyof BaseEntity>;

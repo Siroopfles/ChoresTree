@@ -21,11 +21,11 @@ describe('Validation Performance Tests', () => {
     content: `Test notification ${index}`,
     recipientId: `user${index}`,
     taskId: `123e4567-e89b-12d3-a456-${(index + 1).toString().padStart(12, '0')}`,
-    metadata: { index }
+    metadata: { index },
   });
 
   // Helper om array van test data te genereren
-  const generateDataset = (size: number) => 
+  const generateDataset = (size: number) =>
     Array.from({ length: size }, (_, i) => generateNotificationData(i));
 
   describe('Load Testing', () => {
@@ -33,9 +33,7 @@ describe('Validation Performance Tests', () => {
       const dataset = generateDataset(1000);
       const startTime = performance.now();
 
-      await Promise.all(dataset.map(data => 
-        validateNotification.complete(data)
-      ));
+      await Promise.all(dataset.map((data) => validateNotification.complete(data)));
 
       const endTime = performance.now();
       const totalTime = endTime - startTime;
@@ -59,19 +57,17 @@ describe('Validation Performance Tests', () => {
       // Valideer batch verwerking efficiëntie
       const batchSizes = [10, 20, 30]; // Kleinere batches voor betere controle
       const repetitions = 5; // Meerdere runs voor stabielere metingen
-      const metrics: Array<{size: number, time: number}> = [];
+      const metrics: Array<{ size: number; time: number }> = [];
 
       for (const batchSize of batchSizes) {
         const times: number[] = [];
-        
+
         // Voer meerdere keren uit voor stabielere metingen
         for (let i = 0; i < repetitions; i++) {
           const dataset = generateDataset(batchSize);
           const startTime = performance.now();
-          
-          await Promise.all(dataset.map(data =>
-            validateNotification.complete(data)
-          ));
+
+          await Promise.all(dataset.map((data) => validateNotification.complete(data)));
 
           times.push(performance.now() - startTime);
         }
@@ -80,7 +76,7 @@ describe('Validation Performance Tests', () => {
         const medianTime = times.sort((a, b) => a - b)[Math.floor(times.length / 2)];
         metrics.push({
           size: batchSize,
-          time: medianTime
+          time: medianTime,
         });
 
         // Log tijden voor debugging
@@ -95,14 +91,16 @@ describe('Validation Performance Tests', () => {
       // Bereken scaling factor tussen elke dataset size
       // Controleer scaling tussen datasets
       for (let i = 1; i < metrics.length; i++) {
-        const scalingFactor = (metrics[i].time / metrics[i-1].time) /
-                            (metrics[i].size / metrics[i-1].size);
-        
+        const scalingFactor =
+          metrics[i].time / metrics[i - 1].time / (metrics[i].size / metrics[i - 1].size);
+
         // Log alleen bij non-lineaire scaling
         if (scalingFactor > 1.2) {
-          console.warn(`Non-linear Scaling Warning: Factor ${scalingFactor.toFixed(2)} between ${metrics[i-1].size} and ${metrics[i].size} items`);
+          console.warn(
+            `Non-linear Scaling Warning: Factor ${scalingFactor.toFixed(2)} between ${metrics[i - 1].size} and ${metrics[i].size} items`,
+          );
         }
-        
+
         // Scaling factor moet dicht bij 1 liggen voor lineaire scaling
         expect(scalingFactor).toBeLessThan(1.2);
       }
@@ -132,14 +130,14 @@ describe('Validation Performance Tests', () => {
           id: testData.id,
           createdAt: testData.createdAt,
           updatedAt: testData.updatedAt,
-          version: testData.version
-        })
+          version: testData.version,
+        }),
       });
 
       // Test notification schema
       benchmarks.push({
         name: 'Notification Schema',
-        time: await runBenchmark(notificationSchema, testData)
+        time: await runBenchmark(notificationSchema, testData),
       });
 
       // Test config schema met correcte lengths
@@ -162,20 +160,20 @@ describe('Validation Performance Tests', () => {
             port: 5432,
             name: 'test_db',
             user: 'test_user',
-            password: 'test_pass'
+            password: 'test_pass',
           },
           redis: {
-            url: 'redis://localhost:6379'
+            url: 'redis://localhost:6379',
           },
           discord: {
             token: 'test_token',
-            clientId: 'test_client_id'
+            clientId: 'test_client_id',
           },
           encryption: {
             key: 'this-is-a-very-long-encryption-key-32-chars',
-            iv: '16-chars-iv-here'
-          }
-        })
+            iv: '16-chars-iv-here',
+          },
+        }),
       });
 
       // Test role schema met correcte snowflake IDs
@@ -194,9 +192,9 @@ describe('Validation Performance Tests', () => {
             color: '#FF0000',
             position: 1,
             managed: false,
-            mentionable: true
-          }
-        })
+            mentionable: true,
+          },
+        }),
       });
 
       // Test task schema
@@ -211,8 +209,8 @@ describe('Validation Performance Tests', () => {
           description: 'Test Description',
           status: TaskStatus.TODO,
           priority: 1,
-          dueDate: new Date(Date.now() + 86400000) // Morgen
-        })
+          dueDate: new Date(Date.now() + 86400000), // Morgen
+        }),
       });
 
       // Test complex nested schema
@@ -220,10 +218,10 @@ describe('Validation Performance Tests', () => {
         nested: createEntitySchema({
           deepNested: createEntitySchema({
             field: createEntitySchema({
-              value: createEntitySchema({})
-            })
-          })
-        })
+              value: createEntitySchema({}),
+            }),
+          }),
+        }),
       });
 
       benchmarks.push({
@@ -252,19 +250,21 @@ describe('Validation Performance Tests', () => {
                   id: testData.id,
                   createdAt: testData.createdAt,
                   updatedAt: testData.updatedAt,
-                  version: testData.version
-                }
-              }
-            }
-          }
-        })
+                  version: testData.version,
+                },
+              },
+            },
+          },
+        }),
       });
 
       // Log en valideer benchmark results
       for (const benchmark of benchmarks) {
         // Log alleen wanneer de test faalt
         if (benchmark.time >= 100) {
-          console.warn(`Performance Warning: ${benchmark.name} took ${benchmark.time.toFixed(2)}ms`);
+          console.warn(
+            `Performance Warning: ${benchmark.name} took ${benchmark.time.toFixed(2)}ms`,
+          );
         }
         expect(benchmark.time).toBeLessThan(100);
       }
@@ -278,9 +278,9 @@ describe('Validation Performance Tests', () => {
 
       for (const concurrency of concurrencyLevels) {
         const startTime = performance.now();
-        const validations = Array(concurrency).fill(null).map(() =>
-          validateNotification.complete(testData)
-        );
+        const validations = Array(concurrency)
+          .fill(null)
+          .map(() => validateNotification.complete(testData));
 
         await Promise.all(validations);
         const endTime = performance.now();
@@ -288,7 +288,9 @@ describe('Validation Performance Tests', () => {
 
         const avgTime = totalTime / concurrency;
         if (avgTime >= 100) {
-          console.warn(`Performance Warning: Concurrency Level ${concurrency} - Average time ${avgTime.toFixed(2)}ms exceeds threshold`);
+          console.warn(
+            `Performance Warning: Concurrency Level ${concurrency} - Average time ${avgTime.toFixed(2)}ms exceeds threshold`,
+          );
         }
 
         // Valideer performance onder hoge concurrency
@@ -298,26 +300,31 @@ describe('Validation Performance Tests', () => {
 
     test('should handle concurrent mixed operations', async () => {
       const operations = [
-        ...Array(20).fill(() => validateNotification.create({
-          type: NotificationType.TASK_ASSIGNED,
-          content: 'Test notification',
-          recipientId: 'user123'
-        })),
-        ...Array(20).fill(() => validateNotification.update({
-          content: 'Updated content',
-          status: NotificationStatus.READ
-        })),
-        ...Array(20).fill(() => validateNotification.complete(generateNotificationData(1)))
+        ...Array(20).fill(() =>
+          validateNotification.create({
+            type: NotificationType.TASK_ASSIGNED,
+            content: 'Test notification',
+            recipientId: 'user123',
+          }),
+        ),
+        ...Array(20).fill(() =>
+          validateNotification.update({
+            content: 'Updated content',
+            status: NotificationStatus.READ,
+          }),
+        ),
+        ...Array(20).fill(() => validateNotification.complete(generateNotificationData(1))),
       ];
 
       const startTime = performance.now();
-      await Promise.all(operations.map(op => op()));
+      await Promise.all(operations.map((op) => op()));
       const totalTime = performance.now() - startTime;
-const avgTime = totalTime / operations.length;
-if (avgTime >= 100) {
-  console.warn(`Performance Warning: Mixed Operations - Average time ${avgTime.toFixed(2)}ms exceeds threshold`);
-}
-
+      const avgTime = totalTime / operations.length;
+      if (avgTime >= 100) {
+        console.warn(
+          `Performance Warning: Mixed Operations - Average time ${avgTime.toFixed(2)}ms exceeds threshold`,
+        );
+      }
 
       expect(totalTime / operations.length).toBeLessThan(100);
     });
@@ -356,7 +363,7 @@ if (avgTime >= 100) {
           Average Time: ${avgTime.toFixed(2)}ms
           Max Time: ${maxTime.toFixed(2)}ms
           Errors: ${errors.length}
-          Success Rate: ${((iterations - errors.length) / iterations * 100).toFixed(2)}%
+          Success Rate: ${(((iterations - errors.length) / iterations) * 100).toFixed(2)}%
         `);
       }
 
@@ -371,21 +378,21 @@ if (avgTime >= 100) {
       const batchResults: number[] = [];
 
       // Process in batches om heap overflow te voorkomen
-      
+
       for (let i = 0; i < largeDataset.length; i += batchSize) {
         const batch = largeDataset.slice(i, i + batchSize);
         const batchStart = performance.now();
-        
-        await Promise.all(batch.map(data =>
-          validateNotification.complete(data)
-        ));
+
+        await Promise.all(batch.map((data) => validateNotification.complete(data)));
 
         const batchTime = performance.now() - batchStart;
         batchResults.push(batchTime);
 
         // Log waarschuwing als batch te lang duurt
         if (batchTime / batchSize >= 100) {
-          console.warn(`Batch Performance Warning: Batch ${i/batchSize + 1} averaged ${(batchTime/batchSize).toFixed(2)}ms per operation`);
+          console.warn(
+            `Batch Performance Warning: Batch ${i / batchSize + 1} averaged ${(batchTime / batchSize).toFixed(2)}ms per operation`,
+          );
         }
       }
 

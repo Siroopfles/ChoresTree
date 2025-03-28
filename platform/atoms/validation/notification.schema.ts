@@ -13,12 +13,13 @@ const notificationSchemaFields = {
       }
       if (issue.code === 'invalid_enum_value') {
         return {
-          message: 'Type moet één van de volgende waardes zijn: ' +
-            Object.values(NotificationType).join(', ')
+          message:
+            'Type moet één van de volgende waardes zijn: ' +
+            Object.values(NotificationType).join(', '),
         };
       }
       return { message: 'Type moet een geldige waarde zijn' };
-    }
+    },
   }),
 
   status: z.nativeEnum(NotificationStatus, {
@@ -28,18 +29,19 @@ const notificationSchemaFields = {
       }
       if (issue.code === 'invalid_enum_value') {
         return {
-          message: 'Status moet één van de volgende waardes zijn: ' +
-            Object.values(NotificationStatus).join(', ')
+          message:
+            'Status moet één van de volgende waardes zijn: ' +
+            Object.values(NotificationStatus).join(', '),
         };
       }
       return { message: 'Status moet een geldige waarde zijn' };
-    }
+    },
   }),
 
   priority: z
     .number({
       required_error: 'Prioriteit is verplicht',
-      invalid_type_error: 'Prioriteit moet een nummer zijn'
+      invalid_type_error: 'Prioriteit moet een nummer zijn',
     })
     .int('Prioriteit moet een geheel getal zijn')
     .min(1, 'Prioriteit moet tussen 1 en 5 zijn')
@@ -48,7 +50,7 @@ const notificationSchemaFields = {
   content: z
     .string({
       required_error: 'Content is verplicht',
-      invalid_type_error: 'Content moet een tekst zijn'
+      invalid_type_error: 'Content moet een tekst zijn',
     })
     .min(1, 'Content mag niet leeg zijn')
     .max(2000, 'Content mag maximaal 2000 karakters zijn')
@@ -57,18 +59,13 @@ const notificationSchemaFields = {
   recipientId: z
     .string({
       required_error: 'Ontvanger ID is verplicht',
-      invalid_type_error: 'Ontvanger ID moet een tekst zijn'
+      invalid_type_error: 'Ontvanger ID moet een tekst zijn',
     })
     .min(1, 'Ontvanger ID mag niet leeg zijn'),
 
-  taskId: z
-    .string()
-    .uuid('Taak ID moet een geldig UUID zijn')
-    .optional(),
+  taskId: z.string().uuid('Taak ID moet een geldig UUID zijn').optional(),
 
-  metadata: z
-    .record(z.unknown())
-    .optional()
+  metadata: z.record(z.unknown()).optional(),
 };
 
 /**
@@ -82,7 +79,7 @@ export const notificationSchema = createEntitySchema(notificationSchemaFields);
 export const createNotificationSchema = z.object({
   ...notificationSchemaFields,
   status: z.nativeEnum(NotificationStatus).default(NotificationStatus.UNREAD),
-  priority: z.number().int().min(1).max(5).default(3)
+  priority: z.number().int().min(1).max(5).default(3),
 });
 
 /**
@@ -117,9 +114,9 @@ export const validateNotification = {
       return await notificationSchema.parseAsync(data);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const errors = error.errors.map(err => ({
+        const errors = error.errors.map((err) => ({
           field: err.path.join('.'),
-          message: err.message
+          message: err.message,
         }));
         throw new Error(`Notification validatie errors: ${JSON.stringify(errors)}`);
       }
@@ -135,9 +132,9 @@ export const validateNotification = {
       return await createNotificationSchema.parseAsync(data);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const errors = error.errors.map(err => ({
+        const errors = error.errors.map((err) => ({
           field: err.path.join('.'),
-          message: err.message
+          message: err.message,
         }));
         throw new Error(`Create notification validatie errors: ${JSON.stringify(errors)}`);
       }
@@ -153,13 +150,13 @@ export const validateNotification = {
       return await updateNotificationSchema.parseAsync(data);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const errors = error.errors.map(err => ({
+        const errors = error.errors.map((err) => ({
           field: err.path.join('.'),
-          message: err.message
+          message: err.message,
         }));
         throw new Error(`Update notification validatie errors: ${JSON.stringify(errors)}`);
       }
       throw error;
     }
-  }
+  },
 };

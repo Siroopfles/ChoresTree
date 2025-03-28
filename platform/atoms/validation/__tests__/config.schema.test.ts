@@ -15,7 +15,7 @@ describe('Config Schema Validation', () => {
     DISCORD_TOKEN: 'discord.token.here',
     DISCORD_CLIENT_ID: 'discord_client_123',
     ENCRYPTION_KEY: '0123456789abcdef0123456789abcdef', // 32 chars
-    ENCRYPTION_IV: '0123456789abcdef' // 16 chars
+    ENCRYPTION_IV: '0123456789abcdef', // 16 chars
   };
 
   describe('Environment Variables Validation', () => {
@@ -23,7 +23,7 @@ describe('Config Schema Validation', () => {
       // Explicitly test using envSchema to satisfy ESLint
       expect(envSchema).toBeDefined();
       expect(configSchema).toBeDefined();
-      
+
       const validValues = ['development', 'production', 'test'];
       for (const value of validValues) {
         const env = { ...validEnv, NODE_ENV: value };
@@ -31,7 +31,9 @@ describe('Config Schema Validation', () => {
       }
 
       const invalidEnv = { ...validEnv, NODE_ENV: 'invalid' };
-      await expect(validateEnv(invalidEnv)).rejects.toThrow('NODE_ENV moet development, production of test zijn');
+      await expect(validateEnv(invalidEnv)).rejects.toThrow(
+        'NODE_ENV moet development, production of test zijn',
+      );
     });
 
     test('should coerce and validate PORT', async () => {
@@ -40,7 +42,9 @@ describe('Config Schema Validation', () => {
       expect(validated.PORT).toBe(8080);
 
       const invalidEnv = { ...validEnv, PORT: '-1' };
-      await expect(validateEnv(invalidEnv)).rejects.toThrow('PORT moet een positief geheel getal zijn');
+      await expect(validateEnv(invalidEnv)).rejects.toThrow(
+        'PORT moet een positief geheel getal zijn',
+      );
     });
 
     test('should use default PORT when not provided', async () => {
@@ -72,12 +76,16 @@ describe('Config Schema Validation', () => {
 
     test('should validate encryption key length', async () => {
       const shortKeyEnv = { ...validEnv, ENCRYPTION_KEY: '123' };
-      await expect(validateEnv(shortKeyEnv)).rejects.toThrow('Encryption key moet minimaal 32 karakters zijn');
+      await expect(validateEnv(shortKeyEnv)).rejects.toThrow(
+        'Encryption key moet minimaal 32 karakters zijn',
+      );
     });
 
     test('should validate encryption IV length', async () => {
       const invalidIvEnv = { ...validEnv, ENCRYPTION_IV: '123' };
-      await expect(validateEnv(invalidIvEnv)).rejects.toThrow('Encryption IV moet exact 16 karakters zijn');
+      await expect(validateEnv(invalidIvEnv)).rejects.toThrow(
+        'Encryption IV moet exact 16 karakters zijn',
+      );
     });
 
     test('should handle multiple validation errors', async () => {
@@ -86,7 +94,7 @@ describe('Config Schema Validation', () => {
         NODE_ENV: 'invalid',
         PORT: '-1',
         DB_HOST: '',
-        REDIS_URL: 'invalid'
+        REDIS_URL: 'invalid',
       };
 
       try {
@@ -112,39 +120,44 @@ describe('Config Schema Validation', () => {
 
       expect(config.NODE_ENV).toBe('development');
       expect(config.PORT).toBe(3000);
-      
+
       // Check database section
       expect(config.database).toEqual({
         host: 'localhost',
         port: 5432,
         name: 'testdb',
         user: 'user',
-        password: 'password'
+        password: 'password',
       });
 
       // Check redis section
       expect(config.redis).toEqual({
         url: 'redis://localhost:6379',
-        password: 'redispass'
+        password: 'redispass',
       });
 
       // Check discord section
       expect(config.discord).toEqual({
         token: 'discord.token.here',
-        clientId: 'discord_client_123'
+        clientId: 'discord_client_123',
       });
 
       // Check encryption section
       expect(config.encryption).toEqual({
         key: '0123456789abcdef0123456789abcdef',
-        iv: '0123456789abcdef'
+        iv: '0123456789abcdef',
       });
     });
 
     test('should handle non-Zod errors in createConfig', async () => {
-      const throwingEnv = new Proxy({}, {
-        get: () => { throw new Error('Systeem error'); }
-      });
+      const throwingEnv = new Proxy(
+        {},
+        {
+          get: () => {
+            throw new Error('Systeem error');
+          },
+        },
+      );
 
       await expect(createConfig(throwingEnv)).rejects.toThrow('Systeem error');
     });
@@ -156,7 +169,7 @@ describe('Config Schema Validation', () => {
         ...validEnv,
         DB_HOST: 'データベース.com',
         DB_USER: 'användare',
-        DB_PASSWORD: 'пароль'
+        DB_PASSWORD: 'пароль',
       };
 
       const config = await createConfig(env);

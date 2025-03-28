@@ -13,9 +13,7 @@ export class TaskTransitionsFactory {
   /**
    * Creëer een transitie van TODO naar IN_PROGRESS
    */
-  static createStartTransition(
-    validation?: () => Promise<boolean>
-  ): StateTransition<TaskStatus> {
+  static createStartTransition(validation?: () => Promise<boolean>): StateTransition<TaskStatus> {
     return {
       from: TaskStatus.TODO,
       to: TaskStatus.IN_PROGRESS,
@@ -27,7 +25,7 @@ export class TaskTransitionsFactory {
    * Creëer een transitie van IN_PROGRESS naar COMPLETED
    */
   static createCompleteTransition(
-    validation?: () => Promise<boolean>
+    validation?: () => Promise<boolean>,
   ): StateTransition<TaskStatus> {
     return {
       from: TaskStatus.IN_PROGRESS,
@@ -41,7 +39,7 @@ export class TaskTransitionsFactory {
    */
   static createCancelTransition(
     fromStatus: TaskStatus,
-    validation?: () => Promise<boolean>
+    validation?: () => Promise<boolean>,
   ): StateTransition<TaskStatus> {
     return {
       from: fromStatus,
@@ -53,24 +51,22 @@ export class TaskTransitionsFactory {
   /**
    * Creëer een set van standaard transities voor tasks
    */
-  static createDefaultTransitions(
-    validations?: {
-      start?: () => Promise<boolean>;
-      complete?: () => Promise<boolean>;
-      cancel?: () => Promise<boolean>;
-    }
-  ): StateTransition<TaskStatus>[] {
+  static createDefaultTransitions(validations?: {
+    start?: () => Promise<boolean>;
+    complete?: () => Promise<boolean>;
+    cancel?: () => Promise<boolean>;
+  }): StateTransition<TaskStatus>[] {
     return [
       // Start transition
       this.createStartTransition(validations?.start),
-      
+
       // Complete transition
       this.createCompleteTransition(validations?.complete),
-      
+
       // Cancel transitions (from any state except CANCELLED)
       ...Object.values(TaskStatus)
-        .filter(status => status !== TaskStatus.CANCELLED)
-        .map(status => this.createCancelTransition(status, validations?.cancel))
+        .filter((status) => status !== TaskStatus.CANCELLED)
+        .map((status) => this.createCancelTransition(status, validations?.cancel)),
     ];
   }
 }

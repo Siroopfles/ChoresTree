@@ -43,10 +43,10 @@ export interface IEncryptionResult {
 export interface IEncryptionConfig {
   /** Het encryptie algoritme om te gebruiken */
   algorithm: string;
-  
+
   /** De default encryptie sleutel */
   defaultKey?: string;
-  
+
   /** Configuratie voor key rotation */
   keyRotation?: {
     enabled: boolean;
@@ -73,7 +73,7 @@ export class EncryptionError extends Error {
   constructor(
     message: string,
     public readonly code: string,
-    public readonly originalError?: Error
+    public readonly originalError?: Error,
   ) {
     super(message);
     this.name = 'EncryptionError';

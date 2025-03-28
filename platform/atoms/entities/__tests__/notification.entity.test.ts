@@ -29,12 +29,16 @@ describe('NotificationEntity', () => {
   });
 
   it('should have encrypted fields marked with @Encrypt decorator', () => {
-    const encryptedFields: string[] = Reflect.getMetadata('typeorm:encrypted_fields', NotificationEntity) || [];
+    const encryptedFields: string[] =
+      Reflect.getMetadata('typeorm:encrypted_fields', NotificationEntity) || [];
     expect(encryptedFields).toContain('content');
   });
 
   it('should have encryption options for encrypted fields', () => {
-    const contentOptions = Reflect.getMetadata('typeorm:encrypted_fields:content', NotificationEntity);
+    const contentOptions = Reflect.getMetadata(
+      'typeorm:encrypted_fields:content',
+      NotificationEntity,
+    );
     expect(contentOptions).toBeDefined();
   });
 
@@ -43,10 +47,10 @@ describe('NotificationEntity', () => {
       const notification = new NotificationEntity();
       const task = new TaskEntity();
       task.id = 'task-1';
-      
+
       notification.task = task;
       notification.taskId = task.id;
-      
+
       expect(notification.task).toBe(task);
       expect(notification.taskId).toBe(task.id);
     });
@@ -61,7 +65,7 @@ describe('NotificationEntity', () => {
   describe('validation', () => {
     it('should allow valid priority values', () => {
       const validPriorities = [1, 2, 3, 4, 5];
-      validPriorities.forEach(priority => {
+      validPriorities.forEach((priority) => {
         notification.priority = priority;
         expect(notification.priority).toBe(priority);
       });
@@ -69,7 +73,7 @@ describe('NotificationEntity', () => {
 
     it('should allow valid type values', () => {
       const validTypes = Object.values(NotificationType);
-      validTypes.forEach(type => {
+      validTypes.forEach((type) => {
         notification.type = type;
         expect(notification.type).toBe(type);
       });
@@ -77,7 +81,7 @@ describe('NotificationEntity', () => {
 
     it('should allow valid status values', () => {
       const validStatuses = Object.values(NotificationStatus);
-      validStatuses.forEach(status => {
+      validStatuses.forEach((status) => {
         notification.status = status;
         expect(notification.status).toBe(status);
       });

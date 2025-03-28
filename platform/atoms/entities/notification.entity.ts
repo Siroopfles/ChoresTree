@@ -11,7 +11,7 @@ export enum NotificationType {
   TASK_ASSIGNED = 'TASK_ASSIGNED',
   TASK_DUE = 'TASK_DUE',
   TASK_COMPLETED = 'TASK_COMPLETED',
-  TASK_UPDATED = 'TASK_UPDATED'
+  TASK_UPDATED = 'TASK_UPDATED',
 }
 
 /**
@@ -19,7 +19,7 @@ export enum NotificationType {
  */
 export enum NotificationStatus {
   UNREAD = 'UNREAD',
-  READ = 'READ'
+  READ = 'READ',
 }
 
 /**
@@ -120,7 +120,7 @@ export class NotificationEntity extends BaseEntity {
    */
   @Column({
     type: 'enum',
-    enum: NotificationType
+    enum: NotificationType,
   })
   type!: NotificationType;
 
@@ -147,7 +147,7 @@ export class NotificationEntity extends BaseEntity {
   @Column({
     type: 'enum',
     enum: NotificationStatus,
-    default: NotificationStatus.UNREAD
+    default: NotificationStatus.UNREAD,
   })
   status!: NotificationStatus;
 
@@ -244,9 +244,9 @@ export class NotificationEntity extends BaseEntity {
    * @type {TaskEntity}
    * @optional
    */
-  @ManyToOne(() => TaskEntity, task => task.notifications, {
+  @ManyToOne(() => TaskEntity, (task) => task.notifications, {
     onDelete: 'SET NULL',
-    nullable: true
+    nullable: true,
   })
   @JoinColumn({ name: 'taskId' })
   task?: TaskEntity;
@@ -326,7 +326,4 @@ export class NotificationEntity extends BaseEntity {
  * };
  * ```
  */
-export type CreateNotificationData = Omit<
-  NotificationEntity,
-  keyof BaseEntity
->;
+export type CreateNotificationData = Omit<NotificationEntity, keyof BaseEntity>;

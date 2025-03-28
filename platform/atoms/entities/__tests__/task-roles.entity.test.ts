@@ -27,7 +27,7 @@ describe('TaskRolesEntity', () => {
     taskRoles.role = role;
     taskRoles.metadata = {
       addedBy: 'user-1',
-      addedAt: new Date().toISOString()
+      addedAt: new Date().toISOString(),
     };
   });
 
@@ -51,7 +51,7 @@ describe('TaskRolesEntity', () => {
     const taskRolesWithoutMeta = new TaskRolesEntity();
     taskRolesWithoutMeta.taskId = task.id;
     taskRolesWithoutMeta.roleId = role.id;
-    
+
     expect(taskRolesWithoutMeta.metadata).toBeUndefined();
   });
 });

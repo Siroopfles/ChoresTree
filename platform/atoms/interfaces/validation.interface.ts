@@ -51,7 +51,7 @@ export interface ISchemaValidator<T extends IEntity> extends IEntityValidator<T>
 export interface ICustomValidator<T extends IEntity> {
   /**
    * Voer custom validatie regels uit
-   * @param entity De entity om te valideren 
+   * @param entity De entity om te valideren
    * @returns Array van validation errors, leeg als valid
    */
   validate(entity: T): Promise<ValidationError[]>;

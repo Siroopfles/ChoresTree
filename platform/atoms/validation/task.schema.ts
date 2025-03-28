@@ -11,32 +11,32 @@ const taskSchemaFields = {
     .min(1, 'Titel is verplicht')
     .max(200, 'Titel mag maximaal 200 karakters zijn')
     .trim(),
-    
+
   description: z
     .string()
     .max(1000, 'Beschrijving mag maximaal 1000 karakters zijn')
     .trim()
     .optional(),
-    
+
   status: z.nativeEnum(TaskStatus, {
     errorMap: () => ({
-      message: 'Status moet één van de volgende waardes zijn: ' +
-        Object.values(TaskStatus).join(', ')
-    })
+      message:
+        'Status moet één van de volgende waardes zijn: ' + Object.values(TaskStatus).join(', '),
+    }),
   }),
-  
+
   dueDate: z
     .date({
       required_error: 'Deadline is verplicht',
-      invalid_type_error: 'Deadline moet een geldige datum zijn'
+      invalid_type_error: 'Deadline moet een geldige datum zijn',
     })
     .min(new Date(), 'Deadline moet in de toekomst liggen')
     .optional(),
-    
+
   priority: z
     .number({
       required_error: 'Prioriteit is verplicht',
-      invalid_type_error: 'Prioriteit moet een nummer zijn'
+      invalid_type_error: 'Prioriteit moet een nummer zijn',
     })
     .int('Prioriteit moet een geheel getal zijn')
     .min(1, 'Prioriteit moet tussen 1 en 5 zijn')
@@ -45,17 +45,17 @@ const taskSchemaFields = {
       if (typeof val === 'number' && (val < 1 || val > 5)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Prioriteit moet tussen 1 en 5 zijn'
+          message: 'Prioriteit moet tussen 1 en 5 zijn',
         });
       }
     }),
-    
+
   assigneeId: z
     .string({
-      invalid_type_error: 'Ongeldig gebruikers ID'
+      invalid_type_error: 'Ongeldig gebruikers ID',
     })
     .uuid('Ongeldig gebruikers ID')
-    .optional()
+    .optional(),
 };
 
 /**
@@ -68,17 +68,20 @@ export const taskSchema = createEntitySchema(taskSchemaFields);
  */
 export const createTaskSchema = z.object({
   ...taskSchemaFields,
-  status: z.nativeEnum(TaskStatus, {
-    errorMap: () => ({
-      message: 'Status moet één van de volgende waardes zijn: ' +
-        Object.values(TaskStatus).join(', ')
+  status: z
+    .nativeEnum(TaskStatus, {
+      errorMap: () => ({
+        message:
+          'Status moet één van de volgende waardes zijn: ' + Object.values(TaskStatus).join(', '),
+      }),
     })
-  }).default(TaskStatus.TODO),
-  priority: z.number()
+    .default(TaskStatus.TODO),
+  priority: z
+    .number()
     .int('Prioriteit moet een geheel getal zijn')
     .min(1, 'Prioriteit moet tussen 1 en 5 zijn')
     .max(5, 'Prioriteit moet tussen 1 en 5 zijn')
-    .default(3)
+    .default(3),
 });
 
 /**
@@ -113,9 +116,9 @@ export const validateTask = {
       return await taskSchema.parseAsync(data);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const errors = error.errors.map(err => ({
+        const errors = error.errors.map((err) => ({
           field: err.path.join('.'),
-          message: err.message
+          message: err.message,
         }));
         throw new Error(`Task validatie errors: ${JSON.stringify(errors)}`);
       }
@@ -131,9 +134,9 @@ export const validateTask = {
       return await createTaskSchema.parseAsync(data);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const errors = error.errors.map(err => ({
+        const errors = error.errors.map((err) => ({
           field: err.path.join('.'),
-          message: err.message
+          message: err.message,
         }));
         throw new Error(`Task validatie errors: ${JSON.stringify(errors)}`);
       }
@@ -149,13 +152,13 @@ export const validateTask = {
       return await updateTaskSchema.parseAsync(data);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const errors = error.errors.map(err => ({
+        const errors = error.errors.map((err) => ({
           field: err.path.join('.'),
-          message: err.message
+          message: err.message,
         }));
         throw new Error(`Task validatie errors: ${JSON.stringify(errors)}`);
       }
       throw error;
     }
-  }
+  },
 };

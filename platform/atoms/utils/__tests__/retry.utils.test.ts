@@ -1,20 +1,19 @@
+import { calculateBackoff, CircuitBreaker, withRetry, retryWithBackoff } from '../retry.utils';
 import {
-  calculateBackoff,
-  CircuitBreaker,
-  withRetry,
-  retryWithBackoff
-} from '../retry.utils';
-import { RetryOptions, MaxRetriesExceededError, CircuitBreakerOpenError } from '../../interfaces/retry.interface';
+  RetryOptions,
+  MaxRetriesExceededError,
+  CircuitBreakerOpenError,
+} from '../../interfaces/retry.interface';
 
 describe('Retry Utilities', () => {
   describe('calculateBackoff', () => {
     it('should calculate exponential backoff with jitter', () => {
       const baseDelay = 100;
       const maxDelay = 1000;
-      
+
       const delay1 = calculateBackoff(0, baseDelay, maxDelay);
       const delay2 = calculateBackoff(1, baseDelay, maxDelay);
-      
+
       expect(delay1).toBeGreaterThanOrEqual(baseDelay);
       expect(delay1).toBeLessThanOrEqual(baseDelay * 1.1);
       expect(delay2).toBeGreaterThanOrEqual(baseDelay * 2);
@@ -24,7 +23,7 @@ describe('Retry Utilities', () => {
     it('should respect max delay', () => {
       const baseDelay = 100;
       const maxDelay = 1000;
-      
+
       const delay = calculateBackoff(5, baseDelay, maxDelay);
       expect(delay).toBeLessThanOrEqual(maxDelay * 1.1);
     });
@@ -45,7 +44,7 @@ describe('Retry Utilities', () => {
       circuitBreaker.recordFailure();
       circuitBreaker.recordFailure();
       circuitBreaker.recordFailure();
-      
+
       expect(circuitBreaker.isOpen()).toBe(true);
     });
 
@@ -53,20 +52,20 @@ describe('Retry Utilities', () => {
       circuitBreaker.recordFailure();
       circuitBreaker.recordFailure();
       circuitBreaker.recordSuccess();
-      
+
       expect(circuitBreaker.isOpen()).toBe(false);
     });
 
     it('should reset after timeout', async () => {
       circuitBreaker = new CircuitBreaker(3, 100);
-      
+
       circuitBreaker.recordFailure();
       circuitBreaker.recordFailure();
       circuitBreaker.recordFailure();
-      
+
       expect(circuitBreaker.isOpen()).toBe(true);
-      
-      await new Promise(resolve => setTimeout(resolve, 150));
+
+      await new Promise((resolve) => setTimeout(resolve, 150));
       expect(circuitBreaker.isOpen()).toBe(false);
     });
   });
@@ -86,7 +85,7 @@ describe('Retry Utilities', () => {
             throw new Error('Temporary failure');
           }
           return 'success';
-        }
+        },
       };
 
       // Manually apply decorator
@@ -95,7 +94,7 @@ describe('Retry Utilities', () => {
         maxAttempts: 3,
         backoffMs: 50,
         maxBackoffMs: 200,
-        retryableErrors: [Error]
+        retryableErrors: [Error],
       })(instance, 'testMethod', descriptor);
 
       Object.defineProperty(instance, 'testMethod', decoratedDescriptor);
@@ -105,7 +104,7 @@ describe('Retry Utilities', () => {
     it('should retry until success', async () => {
       const instance = createTestInstance();
       const result = await instance.testMethod();
-      
+
       expect(result).toBe('success');
       expect(instance.callCount).toBe(3);
     });
@@ -123,7 +122,7 @@ describe('Retry Utilities', () => {
       maxAttempts: 3,
       backoffMs: 50,
       maxBackoffMs: 200,
-      retryableErrors: [Error]
+      retryableErrors: [Error],
     };
 
     it('should retry and succeed', async () => {

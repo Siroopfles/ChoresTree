@@ -1,4 +1,8 @@
-import { RetryOptions, MaxRetriesExceededError, CircuitBreakerOpenError } from '../interfaces/retry.interface';
+import {
+  RetryOptions,
+  MaxRetriesExceededError,
+  CircuitBreakerOpenError,
+} from '../interfaces/retry.interface';
 
 /**
  * Calculates exponential backoff delay
@@ -20,12 +24,12 @@ export class CircuitBreaker {
   } = {
     isOpen: false,
     failureCount: 0,
-    lastFailureTime: null
+    lastFailureTime: null,
   };
 
   constructor(
     private threshold: number = 5,
-    private resetTimeout: number = 60000
+    private resetTimeout: number = 60000,
   ) {}
 
   public recordFailure(): void {
@@ -48,8 +52,7 @@ export class CircuitBreaker {
       return false;
     }
 
-    if (this.state.lastFailureTime && 
-        Date.now() - this.state.lastFailureTime > this.resetTimeout) {
+    if (this.state.lastFailureTime && Date.now() - this.state.lastFailureTime > this.resetTimeout) {
       this.state.isOpen = false;
       this.state.failureCount = 0;
       return false;
@@ -65,17 +68,17 @@ export class CircuitBreaker {
 export function withRetry(options: RetryOptions) {
   const circuitBreaker = new CircuitBreaker();
 
-  return function(
+  return function (
     target: object,
     propertyKey: string | symbol,
-    descriptor: PropertyDescriptor
+    descriptor: PropertyDescriptor,
   ): PropertyDescriptor {
     const originalMethod = descriptor.value;
     if (typeof originalMethod !== 'function') {
       throw new Error('Cannot apply retry decorator to undefined method');
     }
 
-    descriptor.value = async function(this: object, ...args: unknown[]): Promise<unknown> {
+    descriptor.value = async function (this: object, ...args: unknown[]): Promise<unknown> {
       if (circuitBreaker.isOpen()) {
         throw new CircuitBreakerOpenError();
       }
@@ -88,7 +91,7 @@ export function withRetry(options: RetryOptions) {
         } catch (error) {
           if (error instanceof Error) {
             const isRetriable = options.retryableErrors.some(
-              (errorType) => error instanceof errorType
+              (errorType) => error instanceof errorType,
             );
 
             if (!isRetriable) {
@@ -98,12 +101,8 @@ export function withRetry(options: RetryOptions) {
             circuitBreaker.recordFailure();
 
             if (attempt < options.maxAttempts - 1) {
-              const delay = calculateBackoff(
-                attempt,
-                options.backoffMs,
-                options.maxBackoffMs
-              );
-              await new Promise(resolve => setTimeout(resolve, delay));
+              const delay = calculateBackoff(attempt, options.backoffMs, options.maxBackoffMs);
+              await new Promise((resolve) => setTimeout(resolve, delay));
             }
           } else {
             throw error;
@@ -121,10 +120,7 @@ export function withRetry(options: RetryOptions) {
 /**
  * Helper function to wrap a function with retry logic
  */
-export async function retryWithBackoff<T>(
-  fn: () => Promise<T>,
-  options: RetryOptions
-): Promise<T> {
+export async function retryWithBackoff<T>(fn: () => Promise<T>, options: RetryOptions): Promise<T> {
   const circuitBreaker = new CircuitBreaker();
 
   if (circuitBreaker.isOpen()) {
@@ -138,9 +134,7 @@ export async function retryWithBackoff<T>(
       return result;
     } catch (error) {
       if (error instanceof Error) {
-        const isRetriable = options.retryableErrors.some(
-          (errorType) => error instanceof errorType
-        );
+        const isRetriable = options.retryableErrors.some((errorType) => error instanceof errorType);
 
         if (!isRetriable) {
           throw error;
@@ -149,12 +143,8 @@ export async function retryWithBackoff<T>(
         circuitBreaker.recordFailure();
 
         if (attempt < options.maxAttempts - 1) {
-          const delay = calculateBackoff(
-            attempt,
-            options.backoffMs,
-            options.maxBackoffMs
-          );
-          await new Promise(resolve => setTimeout(resolve, delay));
+          const delay = calculateBackoff(attempt, options.backoffMs, options.maxBackoffMs);
+          await new Promise((resolve) => setTimeout(resolve, delay));
         }
       } else {
         throw error;
