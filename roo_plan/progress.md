@@ -29,33 +29,40 @@ Status assignment without complete file verification is STRICTLY PROHIBITED
   * [WIP] Build configuratie
   * [ ] Development tooling
 
-### 2. Atoms Layer [ ] - V2 Reference Components:
+### 2. Atoms Layer [WIP] - V2 Reference Components:
 - v2/atomic/atoms/database/entities
 - v2/atomic/atoms/notification
 - v2/atomic/atoms/task
 - v2/atomic/atoms/config
-- [ ] /entities
-  * [ ] Task entity definitie
-  * [ ] Notification entity definitie
-  * [ ] Role entity definitie
-  * [ ] Validatie implementatie
+- [DONE] /entities
+   * [DONE] Base entity implementatie
+   * [DONE] Task entity met encryptie
+   * [DONE] Notification entity definitie
+   * [DONE] Role entity definitie
+   * [DONE] TaskRoles junction entity
 
-- [ ] /interfaces
-  * [ ] Core interfaces
-  * [ ] Repository contracts
-  * [ ] Service definitions
-  * [ ] Event interfaces
+- [DONE] /interfaces
+  * [DONE] Core interfaces (IEntity)
+  * [DONE] Repository contracts
+  * [DONE] Service definitions
+  * [DONE] Encryption interfaces
 
-- [ ] /validation
-  * [ ] Zod schemas
-  * [ ] Input validators
-  * [ ] Type guards
+- [WIP] /validation
+  * [PARTIAL] Basis Zod schemas
+  * [ ] Task validatie schema
+  * [ ] Notification schema
+  * [ ] Role schema
 
-- [ ] /utils
+- [WIP] /utils
+  * [DONE] Retry utils met circuit breaker
   * [ ] Date utilities
-  * [ ] String helpers
-  * [ ] Type utils
-  * [ ] Testing helpers
+  * [ ] Encryption utils
+  * [PARTIAL] Test helpers
+
+Huidige Issues:
+- Test coverage onder 90% target
+- Incomplete validatie schemas
+- Ontbrekende utility functies
 
 ### 3. Molecules Layer [ ] - V2 Reference Components:
 - v2/atomic/molecules/repositories
@@ -200,11 +207,16 @@ Status assignment without complete file verification is STRICTLY PROHIBITED
   * [DONE] Test environment
 
 ### Documentation
+- [DONE] Entity Documentation
+  * [DONE] API documentatie voor alle core entities
+  * [DONE] TypeORM decorator documentatie
+  * [DONE] Relatie documentatie
+  * [DONE] Encryptie documentatie
+
 - [ ] README Updates
   * [ ] Platform overview
   * [ ] Setup instructies
   * [ ] Development guides
-
 - [ ] API Documentation
   * [ ] REST endpoints
   * [ ] GraphQL schema

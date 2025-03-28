@@ -1,5 +1,7 @@
 import { TaskEntity, TaskStatus } from '../task.entity';
 import 'reflect-metadata';
+import { NotificationEntity } from '../notification.entity';
+import { TaskRolesEntity } from '../task-roles.entity';
 
 describe('TaskEntity', () => {
   let task: TaskEntity;
@@ -35,6 +37,32 @@ describe('TaskEntity', () => {
     
     expect(titleOptions).toBeDefined();
     expect(descriptionOptions).toBeDefined();
+  });
+
+  describe('Relations', () => {
+    it('should have notifications relation', () => {
+      const task = new TaskEntity();
+      const notification = new NotificationEntity();
+      
+      task.notifications = [notification];
+      expect(task.notifications).toHaveLength(1);
+      expect(task.notifications[0]).toBe(notification);
+    });
+
+    it('should have taskRoles relation', () => {
+      const task = new TaskEntity();
+      const taskRole = new TaskRolesEntity();
+      
+      task.taskRoles = [taskRole];
+      expect(task.taskRoles).toHaveLength(1);
+      expect(task.taskRoles[0]).toBe(taskRole);
+    });
+
+    it('should initialize with empty relations', () => {
+      const task = new TaskEntity();
+      expect(task.notifications).toBeUndefined();
+      expect(task.taskRoles).toBeUndefined();
+    });
   });
 
   describe('validation', () => {

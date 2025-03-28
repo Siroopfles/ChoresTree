@@ -46,30 +46,31 @@
 
 ## Immediate Tasks
 
-### 1. Atoms Layer Development
-1. /entities
-   - Base entity class
-   - Task entity
-   - Notification entity
-   - Role entity
+### 1. Atoms Layer Completion
+1. Entity Documentatie ✅
+   - [DONE] API documentatie voor alle entities
+   - [DONE] Relationship diagrams
+   - [DONE] Example usage
+   - [DONE] Migration guides
+   - [DONE] Encryptie documentatie
 
-2. /interfaces
-   - Repository interfaces
-   - Service contracts
-   - Event definitions
-   - Type interfaces
+2. Validation Schemas
+   - Task validation schema
+   - Notification validation schema
+   - Role validation schema
+   - Schema test coverage
 
-3. /validation
-   - Zod schema setup
-   - Validation decorators
-   - Custom validators
-   - Type guards
+3. Missing Utils
+   - Date utilities implementatie
+   - Encryption utils afmaken
+   - Utils test coverage
+   - Performance benchmarks
 
-4. /utils
-   - Date utilities
-   - String helpers
-   - Type utilities
-   - Test helpers
+4. Test Coverage
+   - Unit tests completeren
+   - Integration tests toevoegen
+   - Test documentatie
+   - Coverage rapport naar 90%
 
 ### 2. Development Setup
 1. Environment Configuration
@@ -120,10 +121,10 @@
 ## Success Criteria
 
 ### Immediate (2 weken)
-- Complete /atoms layer met v2 entities als referentie
-- Basic test framework met v2 test utilities
-- Local development met v2 configuratie als basis
-- CI pipeline gebaseerd op v2 best practices
+- Validatie schemas implementeren
+- Missing utils toevoegen
+- Test coverage naar 90% brengen
+- Entity documentatie completeren
 
 ### Short Term (1 maand)
 - /molecules layer
