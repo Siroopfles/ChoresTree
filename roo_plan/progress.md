@@ -48,10 +48,13 @@ Status assignment without complete file verification is STRICTLY PROHIBITED
   * [DONE] Encryption interfaces
 
 - [WIP] /validation
-  * [PARTIAL] Basis Zod schemas
-  * [ ] Task validatie schema
-  * [ ] Notification schema
-  * [ ] Role schema
+  * [DONE] Basis Zod schemas
+  * [DONE] Task validatie schema
+  * [DONE] Notification schema
+  * [DONE] Role schema
+  * [DONE] Config schema
+  * [WIP] Test coverage voor validation layer
+  * [WIP] Performance tests
 
 - [WIP] /utils
   * [DONE] Retry utils met circuit breaker

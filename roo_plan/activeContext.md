@@ -54,11 +54,15 @@
    - [DONE] Migration guides
    - [DONE] Encryptie documentatie
 
-2. Validation Schemas
-   - Task validation schema
-   - Notification validation schema
-   - Role validation schema
-   - Schema test coverage
+2. Validation Schemas ⚠️
+   - [DONE] Task validation schema
+   - [DONE] Notification validation schema
+   - [DONE] Role schema implementatie
+   - [DONE] Config schema met Nederlandse errors
+   - [WIP] Schema test coverage
+   - [WIP] Test documentatie
+   - [WIP] Performance tests
+   - [WIP] Error message consistency review
 
 3. Missing Utils
    - Date utilities implementatie

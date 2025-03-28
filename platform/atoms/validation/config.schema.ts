@@ -7,7 +7,9 @@ export const envSchema = z.object({
   // Server configuratie
   NODE_ENV: z.enum(['development', 'production', 'test'], {
     description: 'Node environment',
-    invalid_type_error: 'NODE_ENV moet development, production of test zijn'
+    errorMap: () => ({
+      message: 'NODE_ENV moet development, production of test zijn'
+    })
   }),
   PORT: z.coerce.number().int().positive({
     message: 'PORT moet een positief geheel getal zijn'

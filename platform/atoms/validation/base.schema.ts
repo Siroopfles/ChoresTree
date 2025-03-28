@@ -36,7 +36,7 @@ export function createEntitySchema<T extends z.ZodRawShape>(schema: T) {
  * Helper functie om een partial schema te maken voor updates
  */
 export function createPartialSchema<T extends z.ZodRawShape>(schema: T) {
-  return baseSchema.partial().extend(schema);
+  return baseSchema.partial().extend(schema).partial();
 }
 
 /**

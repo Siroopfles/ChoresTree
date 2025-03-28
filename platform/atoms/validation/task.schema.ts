@@ -19,7 +19,7 @@ const taskSchemaFields = {
     .optional(),
     
   status: z.nativeEnum(TaskStatus, {
-    errorMap: (_issue) => ({
+    errorMap: () => ({
       message: 'Status moet één van de volgende waardes zijn: ' +
         Object.values(TaskStatus).join(', ')
     })
@@ -40,10 +40,20 @@ const taskSchemaFields = {
     })
     .int('Prioriteit moet een geheel getal zijn')
     .min(1, 'Prioriteit moet tussen 1 en 5 zijn')
-    .max(5, 'Prioriteit moet tussen 1 en 5 zijn'),
+    .max(5, 'Prioriteit moet tussen 1 en 5 zijn')
+    .superRefine((val, ctx) => {
+      if (typeof val === 'number' && (val < 1 || val > 5)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Prioriteit moet tussen 1 en 5 zijn'
+        });
+      }
+    }),
     
   assigneeId: z
-    .string()
+    .string({
+      invalid_type_error: 'Ongeldig gebruikers ID'
+    })
     .uuid('Ongeldig gebruikers ID')
     .optional()
 };
@@ -58,8 +68,17 @@ export const taskSchema = createEntitySchema(taskSchemaFields);
  */
 export const createTaskSchema = z.object({
   ...taskSchemaFields,
-  status: z.nativeEnum(TaskStatus).default(TaskStatus.TODO),
-  priority: z.number().int().min(1).max(5).default(3)
+  status: z.nativeEnum(TaskStatus, {
+    errorMap: () => ({
+      message: 'Status moet één van de volgende waardes zijn: ' +
+        Object.values(TaskStatus).join(', ')
+    })
+  }).default(TaskStatus.TODO),
+  priority: z.number()
+    .int('Prioriteit moet een geheel getal zijn')
+    .min(1, 'Prioriteit moet tussen 1 en 5 zijn')
+    .max(5, 'Prioriteit moet tussen 1 en 5 zijn')
+    .default(3)
 });
 
 /**
@@ -116,7 +135,7 @@ export const validateTask = {
           field: err.path.join('.'),
           message: err.message
         }));
-        throw new Error(`Create task validatie errors: ${JSON.stringify(errors)}`);
+        throw new Error(`Task validatie errors: ${JSON.stringify(errors)}`);
       }
       throw error;
     }
@@ -134,7 +153,7 @@ export const validateTask = {
           field: err.path.join('.'),
           message: err.message
         }));
-        throw new Error(`Update task validatie errors: ${JSON.stringify(errors)}`);
+        throw new Error(`Task validatie errors: ${JSON.stringify(errors)}`);
       }
       throw error;
     }
