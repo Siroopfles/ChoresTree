@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { Min, Max } from 'class-validator';
 import { TaskEntity } from './task.entity';
 import { BaseEntity } from './base.entity';
@@ -96,6 +96,9 @@ export enum NotificationStatus {
  * ```
  */
 @Entity('notifications')
+@Index(['recipientId', 'status', 'createdAt']) // Compound index voor unread notificaties query
+@Index(['createdAt']) // Index voor cleanup en recente notificaties
+@Index(['taskId']) // Index voor taak gerelateerde queries
 export class NotificationEntity extends BaseEntity {
   /**
    * Het type notificatie dat bepaalt hoe de notificatie wordt weergegeven en verwerkt.
@@ -272,6 +275,34 @@ export class NotificationEntity extends BaseEntity {
    */
   @Column({ type: 'json', nullable: true })
   metadata?: Record<string, unknown>;
+
+  /**
+   * Partitie sleutel voor database performance optimalisatie.
+   * Automatisch gegenereerd op basis van createdAt timestamp.
+   *
+   * @decorator {@link Column}
+   * - type: timestamp
+   * - precision: 3
+   * - select: false (niet nodig in normale queries)
+   * - generatedType: STORED
+   * - asExpression: Maandelijkse partitie
+   *
+   * Performance features:
+   * - Automatische partitioning op maand
+   * - Verbeterde query performance
+   * - Efficiënt data management
+   *
+   * @type {Date}
+   * @internal
+   */
+  @Column({
+    type: 'timestamp',
+    precision: 3,
+    select: false,
+    generatedType: 'STORED',
+    asExpression: 'DATE_TRUNC(\'month\', "createdAt")',
+  })
+  partitionKey: Date;
 }
 
 /**

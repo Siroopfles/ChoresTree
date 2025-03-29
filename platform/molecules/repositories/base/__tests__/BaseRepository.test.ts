@@ -2,6 +2,17 @@ import { Connection, Repository, EntityMetadata, FindOneOptions, UpdateResult } 
 import { BaseRepository } from '../BaseRepository';
 import { BaseEntity } from '../../../../atoms/entities/base.entity';
 import { ICacheProvider } from '../../../../core/cache/ICacheProvider';
+import { DatabaseMetrics } from '../../../../core/database/connection';
+
+// Mock DatabaseMetrics
+jest.mock('../../../../core/database/connection', () => ({
+  DatabaseMetrics: {
+    getInstance: jest.fn().mockReturnValue({
+      recordQueryExecution: jest.fn(),
+      recordError: jest.fn(),
+    }),
+  },
+}));
 
 // Test entity
 class TestEntity extends BaseEntity {
@@ -32,9 +43,15 @@ describe('BaseRepository', () => {
       release: jest.fn().mockResolvedValue(undefined),
     };
 
-    // Setup repository mock
+    // Setup repository mock with relations
     typeormRepository = {
-      metadata: { targetName: 'TestEntity' } as EntityMetadata,
+      metadata: {
+        targetName: 'TestEntity',
+        relations: [
+          { isLazy: false, isEager: true, propertyName: 'relation1' },
+          { isLazy: false, isEager: false, propertyName: 'relation2' },
+        ],
+      } as EntityMetadata,
       create: jest.fn(),
       save: jest.fn(),
       findOne: jest.fn(),
@@ -82,6 +99,8 @@ describe('BaseRepository', () => {
       expect(cacheProvider.get).toHaveBeenCalledWith('entity:TestEntity:123');
       expect(typeormRepository.findOne).toHaveBeenCalledWith({
         where: { id: '123' },
+        loadEagerRelations: false,
+        cache: true,
       });
       expect(cacheProvider.set).toHaveBeenCalledWith('entity:TestEntity:123', mockEntity);
     });
@@ -174,6 +193,9 @@ describe('BaseRepository', () => {
       expect(queryRunner.startTransaction).toHaveBeenCalled();
       expect(queryRunner.commitTransaction).toHaveBeenCalled();
       expect(queryRunner.release).toHaveBeenCalled();
+      // Verify metrics were recorded
+      const metrics = DatabaseMetrics.getInstance();
+      expect(metrics.recordQueryExecution).toHaveBeenCalledWith('transaction', expect.any(Number));
     });
 
     it('should rollback transaction on error', async () => {
@@ -184,6 +206,32 @@ describe('BaseRepository', () => {
 
       expect(queryRunner.rollbackTransaction).toHaveBeenCalled();
       expect(queryRunner.release).toHaveBeenCalled();
+
+      // Verify error was recorded
+      const metrics = DatabaseMetrics.getInstance();
+      expect(metrics.recordError).toHaveBeenCalledWith('transaction', error);
+    });
+
+    describe('error handling', () => {
+      it('should handle and monitor database errors', async () => {
+        const error = new Error('Database error');
+        (typeormRepository.findOne as jest.Mock).mockRejectedValueOnce(error);
+
+        await expect(repository.findById('123')).rejects.toThrow(error);
+
+        const metrics = DatabaseMetrics.getInstance();
+        expect(metrics.recordError).toHaveBeenCalledWith('findById', error);
+      });
+
+      it('should monitor query performance', async () => {
+        const entity = { id: '123', name: 'Test' } as TestEntity;
+        (typeormRepository.findOne as jest.Mock).mockResolvedValueOnce(entity);
+
+        await repository.findById('123');
+
+        const metrics = DatabaseMetrics.getInstance();
+        expect(metrics.recordQueryExecution).toHaveBeenCalledWith('findById', expect.any(Number));
+      });
     });
   });
 });

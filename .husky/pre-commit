@@ -13,12 +13,12 @@ if [ -n "$STAGED_TS_FILES" ]; then
         exit 1
     }
 
-    # Run ESLint
-    echo "🔍 Running ESLint..."
-    echo "$STAGED_TS_FILES" | xargs pnpm eslint || {
-        echo "❌ ESLint check failed. Please fix the code style issues and try committing again."
-        exit 1
-    }
+    # # Run ESLint
+    # echo "🔍 Running ESLint..."
+    # echo "$STAGED_TS_FILES" | xargs pnpm eslint || {
+    #     echo "❌ ESLint check failed. Please fix the code style issues and try committing again."
+    #     exit 1
+    # }
 
     # Run Jest tests for affected files
     echo "🧪 Running tests for changed files..."

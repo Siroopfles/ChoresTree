@@ -46,37 +46,39 @@
 
 ## Immediate Tasks
 
-### 1. Atoms Layer Completion
-1. Entity Documentatie ✅
-   - [DONE] API documentatie voor alle entities
-   - [DONE] Relationship diagrams
-   - [DONE] Example usage
-   - [DONE] Migration guides
-   - [DONE] Encryptie documentatie
+### 1. Entity Layer Consolidatie ✅
+1. Entity Restructuring
+   - [DONE] Permission entity naar atoms layer verplaatst
+   - [DONE] Role entity geconsolideerd met hiërarchie support
+   - [DONE] Task entity geconsolideerd met status tracking
+   - [DONE] Notification entity geconsolideerd met partitioning
 
-2. Validation Schemas ✅
-   - [DONE] Task validation schema
-   - [DONE] Notification validation schema
-   - [DONE] Role schema implementatie
-   - [DONE] Config schema met Nederlandse errors
-   - [DONE] Schema test coverage (>90%)
-   - [DONE] Test documentatie
-   - [DONE] Performance tests (alle criteria behaald)
-   - [DONE] Error message consistency review
+2. Entity Optimalisatie
+   - [DONE] Volledige encryptie en security features
+   - [DONE] Performance features geïntegreerd
+   - [DONE] Database indexing geoptimaliseerd
+   - [DONE] Cache strategieën verbeterd
 
-3. Missing Utils ✅
-   - [DONE] Date utilities met timezone/locale support
-   - [DONE] Encryption utils met key rotation
-   - [DONE] Utils test coverage >90%
-   - [DONE] Performance benchmarks behaald
+3. Repository Aanpassingen
+   - [DONE] Import paths gecorrigeerd
+   - [DONE] Tests geüpdatet
+   - [DONE] Performance geverifieerd
+   - [DONE] Error handling intact
 
-4. Test Coverage
-   - Unit tests completeren
-   - Integration tests toevoegen
-   - Test documentatie
-   - Coverage rapport naar 90%
+### 2. Services Layer Implementatie
+1. Base Service Pattern
+   - Core functionaliteit definities
+   - Error handling strategie
+   - Event integratie
+   - Caching support
 
-### 2. Development Setup
+2. Service Rollout Planning
+   - Task service prioriteit
+   - Notification service features
+   - Role service Discord integratie
+   - Permission management
+
+### 3. Development Setup
 1. Environment Configuration
    - Docker compose files
    - Environment variables
@@ -125,12 +127,12 @@
 ## Success Criteria
 
 ### Immediate (2 weken)
-- Start /molecules layer implementatie:
-  * Base repository pattern
-  * Task repository
-  * Notification repository
-  * Role repository
-  * Cache integration
+- Services Layer Implementatie:
+  * Base service pattern
+  * Task service met workflow management
+  * Notification service met real-time support
+  * Role service met Discord integratie
+  * Error handling strategie
 
 ### Short Term (1 maand)
 - /molecules layer

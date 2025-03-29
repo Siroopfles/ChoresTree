@@ -1,7 +1,8 @@
-import { Entity, Column, OneToMany } from 'typeorm';
-import { IsString, IsArray, IsOptional, IsNotEmpty } from 'class-validator';
+import { Entity, Column, OneToMany, ManyToOne, ManyToMany, JoinTable } from 'typeorm';
+import { IsString, IsArray, IsOptional, IsNotEmpty, IsBoolean } from 'class-validator';
 import { TaskRolesEntity } from './task-roles.entity';
 import { BaseEntity } from './base.entity';
+import { PermissionEntity } from './permission.entity';
 
 /**
  * Type definitie voor Discord rol metadata.
@@ -141,10 +142,13 @@ export class RoleEntity extends BaseEntity {
    * - Duplicaten worden automatisch verwijderd
    * - Minimum 1 permissie vereist
    */
-  @Column('simple-array')
-  @IsArray()
-  @IsString({ each: true })
-  permissions!: string[];
+  @ManyToMany(() => PermissionEntity)
+  @JoinTable({
+    name: 'role_permissions',
+    joinColumn: { name: 'roleId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'permissionId', referencedColumnName: 'id' },
+  })
+  permissions!: PermissionEntity[];
 
   /**
    * Unieke identifier van de gekoppelde Discord rol.
@@ -236,4 +240,78 @@ export class RoleEntity extends BaseEntity {
    */
   @OneToMany(() => TaskRolesEntity, (taskRole) => taskRole.role)
   taskRoles?: TaskRolesEntity[];
+
+  /**
+   * Hiërarchie support - referentie naar parent rol
+   * Ondersteunt role inheritance en permission cascading
+   *
+   * @decorator {@link ManyToOne}
+   * @type {Role}
+   * @optional
+   */
+  @ManyToOne(() => RoleEntity, (role) => role.children, { nullable: true })
+  parent?: RoleEntity;
+
+  /**
+   * Hiërarchie support - lijst van child rollen
+   * Ondersteunt role inheritance en permission cascading
+   *
+   * @decorator {@link OneToMany}
+   * @type {Role[]}
+   */
+  @OneToMany(() => RoleEntity, (role) => role.parent)
+  children!: RoleEntity[];
+
+  /**
+   * Geeft aan of dit een default rol is die automatisch wordt toegewezen
+   *
+   * @decorator {@link Column}
+   * @decorator {@link IsBoolean}
+   * @type {boolean}
+   * @default false
+   */
+  @Column({ default: false })
+  @IsBoolean()
+  isDefault!: boolean;
+
+  /**
+   * Helper method die alle permissions ophaalt inclusief geërfde permissions van parent roles
+   *
+   * @returns Promise<Permission[]> Array van unieke permissions
+   */
+  async getAllPermissions(): Promise<PermissionEntity[]> {
+    const allPermissions = new Set<PermissionEntity>();
+
+    // Voeg eigen permissions toe
+    this.permissions?.forEach((permission) => allPermissions.add(permission));
+
+    // Voeg parent permissions recursief toe
+    if (this.parent) {
+      const parentPermissions = await this.parent.getAllPermissions();
+      parentPermissions.forEach((permission) => allPermissions.add(permission));
+    }
+
+    return Array.from(allPermissions);
+  }
+
+  /**
+   * Helper method om te controleren of een rol in de hiërarchie van deze rol zit
+   *
+   * @param targetRole De rol om te controleren
+   * @returns Promise<boolean> True als de rol in de hiërarchie zit
+   */
+  async isInHierarchy(targetRole: RoleEntity): Promise<boolean> {
+    if (this.id === targetRole.id) return true;
+    if (!this.parent) return false;
+    return this.parent.isInHierarchy(targetRole);
+  }
+
+  /**
+   * Helper method om een cache key te genereren voor deze rol
+   *
+   * @returns string De cache key
+   */
+  getCacheKey(): string {
+    return `role:${this.serverId}:${this.discordRoleId}`;
+  }
 }

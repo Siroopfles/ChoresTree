@@ -99,6 +99,26 @@ export enum TaskStatus {
 @Entity('tasks')
 export class TaskEntity extends EncryptedEntity {
   /**
+   * Metadata object voor flexibele data opslag.
+   * Overgenomen uit molecules implementatie voor extra flexibiliteit.
+   *
+   * @decorator {@link Column}
+   * - type: json
+   * - nullable: true
+   *
+   * Gebruik:
+   * - Opslag van extra taak attributen
+   * - Custom velden per project
+   * - Historische status tracking
+   * - Workflow specifieke data
+   *
+   * @type {Record<string, any>}
+   * @optional
+   */
+  @Column('json', { nullable: true })
+  metadata?: Record<string, any>;
+
+  /**
    * De titel van de taak, encrypted opgeslagen voor privacy.
    *
    * @decorator {@link Encrypt}
